@@ -1,0 +1,22 @@
+{
+  "name": "countdown",
+  "description": "countdown PWA using sockets",
+  "website": "https://github.com/jamieoneill/countdown",
+  "repository": "https://github.com/jamieoneill/countdown",
+  "logo": "https://node-js-sample.herokuapp.com/node.svg",
+  "success_url": "/",
+  "keywords": [
+    "node",
+    "express",
+    "socket.io",
+    "realtime",
+    "websocket"
+  ],
+  "scripts": {
+  },
+  "addons": [
+  ],
+  "env": {
+    "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-nodejs"
+  }
+}

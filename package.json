@@ -1,0 +1,12 @@
+{
+  "name": "countdown",
+  "version": "0.0.1",
+  "description": "countdown PWA using sockets",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^1.7.4"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

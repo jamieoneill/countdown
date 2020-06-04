@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Countdown test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    />
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        max-width: 100%;
+        max-height: 100%;
+        overflow-x: hidden;
+        overflow-y: hidden;
+      }
+      body {
+        font: 13px Helvetica, Arial;
+      }
+      #messages {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      #messages li {
+        padding: 5px 10px;
+      }
+      #messages li:nth-child(odd) {
+        background: #eee;
+      }
+      #messages {
+        margin-bottom: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="card">
+          <article class="card-group-item" style="height: 50vh;">
+            <header class="card-header">
+              <h6 class="title">Users</h6>
+            </header>
+            <div class="filter-content">
+              <div class="card-body">
+                <ul id="users"></ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="card-group-item" style="height: 50vh;">
+            <header class="card-header">
+              <h6 class="title">Messages</h6>
+            </header>
+            <div class="filter-content">
+              <div class="card-body">
+                <!-- need to make scroll-->
+                <ul id="messages" style="height: 200px; overflow: auto;"></ul>
+              </div>
+            </div>
+            <div
+              class="card-footer"
+              style="position: absolute; bottom: 0; width: 100%;"
+            >
+              <div class="col-md-12">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="inputMessage"
+                  placeholder="Send message..."
+                />
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div class="container">
+          <div
+            id="letterHolder"
+            class="form-group text-center"
+            style="font-size: large;"
+          ></div>
+
+          <div id="selectLetterButtons" class="form-group text-center">
+            <button class="btn btn-primary letterButton" id="vowel">
+              vowel
+            </button>
+            <button class="btn btn-primary letterButton" id="consonant">
+              consonant
+            </button>
+          </div>
+
+          <div id="timer" class="form-group text-center">30</div>
+
+          <div class="form-group">
+            <textarea
+              class="form-control"
+              placeholder="Rough Work..."
+              rows="6"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <input
+                type="text"
+                class="form-control"
+                id="answer"
+                placeholder="Answer..."
+              />
+            </div>
+            <div class="form-group col-md-6">
+              <button class="btn btn-success" id="submitAnswer">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      $(function () {
+        var socket = io();
+        var username;
+        /*
+        $("form").submit(function () {
+          socket.emit("chat message", $("#m").val());
+
+          $("#m").val("");
+          return false;
+        });
+        */
+
+        //get current users
+        retrievedUsers = false;
+        socket.emit("getUsers");
+
+        //only get once
+        socket.on("users", function (users) {
+          if (!retrievedUsers) {
+            retrievedUsers = true;
+
+            users.forEach((user) => {
+              $("#users").append($("<li>").text(user));
+            });
+          }
+        });
+
+        //add as user
+        username = setUserName();
+
+        //get new users
+        socket.on("userAdded", function (user) {
+          $("#users").append($("<li>").text(user));
+        });
+
+        //remove user
+        socket.on("removeUser", function (user) {
+          $("#users").append($("<li>").text(user));
+          $("li:contains('" + user + "')").remove();
+        });
+
+        //request letter
+        $(".letterButton").click(function (e) {
+          socket.emit("selectLetter", e.target.id);
+        });
+
+        //receive letter
+        socket.on("selectLetter", function (letter) {
+          $("#letterHolder").append($("<span>").text(letter));
+
+          //start countdown when all letters are selected
+          if ($("#letterHolder")[0].innerText.length == 9) {
+            alert("countdown");
+            socket.emit("startTimer", 30);
+            $(".letterButton").prop("disabled", true);
+          }
+        });
+
+        //submit answer
+        $("#submitAnswer").click(function (e) {
+          socket.emit("submitAnswer", {
+            answer: $("#answer").val(),
+            user: username,
+          });
+          $("#submitAnswer").prop("disabled", true);
+        });
+
+        //timer
+        socket.on("timer", function (timeLeft) {
+          $("#timer").text(timeLeft);
+
+          if (timeLeft === 0) {
+            alert("time's up!");
+          }
+        });
+
+        //get answers
+        socket.on("showAnswers", function (responses) {
+          responses.forEach((response) => {
+            $("#messages").append(
+              $("<li>").text(
+                response.user + " : " + response.answer + " : " + response.score
+              )
+            );
+          });
+        });
+
+        //server messages
+        socket.on("message", function (msg) {
+          //add bold for messages from the server
+          if (!msg.includes(":")) {
+            $("#messages").append($("<li>").append($("<b>").text(msg)));
+          } else {
+            $("#messages").append($("<li>").text(msg));
+          }
+          $("#messages").scrollTop($("#messages")[0].scrollHeight);
+        });
+
+        //send message
+        $("#inputMessage").keyup(function (e) {
+          if (e.keyCode === 13) {
+            socket.emit("message", $("#inputMessage").val());
+            $("#inputMessage").val("");
+          }
+        });
+
+        // OTHER FUNCTIONS
+        //get username
+        async function setUserName() {
+          const { value: name } = await Swal.fire({
+            title: "Enter your name",
+            input: "text",
+            allowOutsideClick: false,
+            inputValidator: (value) => {
+              if (!value) {
+                return "You need to write something!";
+              }
+            },
+          });
+
+          if (name) {
+            socket.emit("addUser", name);
+          }
+
+          return name;
+        }
+      }); //end main
+    </script>
+  </body>
+</html>
