@@ -21,10 +21,10 @@ $(function () {
   var socket = io.connect();
   var username;
   var room;
+  var init = false;
   var roundLetters = { letters: [], counts: {} };
 
   //add as user to room
-  //username = setUserName();
   roomValues = joinRoom();
   username = roomValues[0];
   room = roomValues[1];
@@ -138,13 +138,10 @@ $(function () {
     }
   });
 
-  test = {"one": "1", "two": "2"}
-  
-  console.log(test["one"])
   //get answers
   socket.on("showAnswers", function (responses) {
     responses.forEach((response) => {
-      console.log(response)
+      console.log(response);
       $("#messages").append(
         $("<li>").text(
           response.user + " : " + response.answer + " : " + response.score
@@ -173,80 +170,167 @@ $(function () {
   });
 
   // OTHER FUNCTIONS
-  //get username
-  async function setUserName() {
-    const { value: name } = await Swal.fire({
-      title: "Enter your name",
-      input: "text",
-      allowOutsideClick: false,
-      inputValidator: (value) => {
-        if (!value) {
-          return "You need to write something!";
-        }
-      },
-    });
-
-    if (name) {
-      socket.emit("addUser", name);
-    }
-
-    return name;
-  }
-
+  //join a room
   async function joinRoom() {
-    results = {};
+    var results = {};
 
-    await Swal.mixin({
-      input: "text",
-      confirmButtonText: "Next &rarr;",
-      allowOutsideClick: false,
-      showCancelButton: false,
-      progressSteps: ["1", "2"],
-    })
-      .queue([
-        {
+    //get rooms
+    socket.emit("getRooms");
+    socket.on("rooms", function (getRooms) {
+      if (!init) {
+        var table_body = '<table class="table"><thead><tr>';
+        table_body +=
+          '<th scope="col">Room</th><th scope="col">Host</th>  <th scope="col">Players</th> <th scope="col">Type</th> <th scope="col"></th>';
+        table_body += "</tr></thead>";
+        table_body += "<tbody>";
+
+        //add existing room to table
+        if (Object.keys(getRooms).length != 0) {
+          for (var room in getRooms) {
+            table_body += "<tr>";
+            table_body += "<td>" + room + "</td>";
+            table_body += "<td>" + getRooms[room].host + "</td>";
+            table_body +=
+              "<td>" + Object.keys(getRooms[room].sockets).length + "</td>";
+            table_body += "<td>" + getRooms[room].type + "</td>";
+            table_body +=
+              '<td><button class="btn btn-success joinButton" data-type="' +
+              getRooms[room].type +
+              '" id="' +
+              room +
+              '">join</button</td>';
+            table_body += "</tr>";
+          }
+        } else {
+          table_body += "<tr><td>No open games</td></tr>";
+        }
+
+        table_body += "</tbody></table>";
+
+        //add username
+        Swal.fire({
           title: "Username",
+          input: "text",
           text: "Enter your name",
+          confirmButtonText: "Next",
+          allowOutsideClick: false,
+          showCancelButton: false,
           inputValidator: (value) => {
             if (!value) {
               return "You need to enter a name";
             }
           },
-        },
-        {
-          title: "Room",
-          text: "Enter a room name",
-          confirmButtonText: "Enter Room",
-        },
-      ])
-      .then((result) => {
-        if (result.value) {
-          results.username = result.value[0];
-          results.room = result.value[1];
+        }).then((name) => {
+          results.username = name.value;
 
-          socket.emit("addUser", results);
+          Swal.fire({
+            title: "Join Game",
+            html: table_body,
+            confirmButtonText: "Create a room",
+            allowOutsideClick: false,
+            showCancelButton: false,
+            onBeforeOpen: () => {
+              //add click to join buttons
+              $(".joinButton").on("click", function (event) {
+                //joining a existing room
+                results.room = $(this)[0].id;
 
-          //get current users
-          retrievedUsers = false;
-          socket.emit("getUsers");
+                if ($(this)[0].attributes["data-type"].value === "Private") {
+                  Swal.fire({
+                    title: "Password",
+                    input: "text",
+                    confirmButtonText: "Enter",
+                    allowOutsideClick: false,
+                    showCancelButton: false,
+                    inputValidator: (value) => {
+                      if (!value) {
+                        return "You need to enter the password";
+                      }
+                    },
+                  }).then((password) => {
+                    //join private game
+                    results.password = password.value;
 
-          //only get once
-          socket.on("users", function (users) {
-            if (!retrievedUsers) {
-              retrievedUsers = true;
-              users.pop();
+                    addUser(results);
+                    Swal.close();
+                  });
+                } else {
+                  addUser(results);
+                  Swal.close();
+                }
+              });
+            },
+          }).then((newRoom) => {
+            //creating new room
+            if (newRoom.isConfirmed) {
+              Swal.fire({
+                title: "Room Details",
+                html:
+                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter room name</div>' +
+                  '<input id="swal-roomname" class="swal2-input">' +
+                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
+                  '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio" value="Private"><span class="swal2-label">Private</span></label></div>' +
+                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter password</div>' +
+                  '<input id="swal-password" placeholder="password only needed for private games..." class="swal2-input">',
+                focusConfirm: false,
+                preConfirm: () => {
+                  return [
+                    document.getElementById("swal-roomname").value,
+                    document.querySelector('input[name="swal2-radio"]:checked')
+                      .value,
+                    document.getElementById("swal-password").value,
+                  ];
+                },
+              }).then((createRoom) => {
+                if (createRoom.value) {
+                  results.room = createRoom.value[0];
+                  results.type = createRoom.value[1];
+                  results.password = createRoom.value[2];
 
-              users.forEach((user) => {
-                $("#users").append($("<li>").text(user));
+                  addUser(results);
+                }
               });
             }
           });
-        } else {
-          console.log("this should never happen");
-          console.log(result);
-        }
-      });
+        });
 
-    return results;
+        init = true;
+        return results;
+      }
+    });
   }
+
+  function addUser(values) {
+    //adding
+    socket.emit("addUser", values);
+
+    //get current users
+    retrievedUsers = false;
+    socket.emit("getUsers");
+
+    //only get once
+    socket.on("users", function (users) {
+      if (!retrievedUsers) {
+        retrievedUsers = true;
+        users.pop();
+
+        users.forEach((user) => {
+          $("#users").append($("<li>").text(user));
+        });
+      }
+    });
+  }
+
+  //wrong password find another room
+  socket.on("wrongPassword", function (roomname) {
+    swal
+      .fire(
+        "Wrong password",
+        "You did not enter the correct password for room: " + roomname
+      )
+      .then(() => {
+        init = false;
+        joinRoom();
+      });
+  });
 }); //end main

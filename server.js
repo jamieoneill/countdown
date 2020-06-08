@@ -27,7 +27,9 @@ server.listen(port, "0.0.0.0", function () {
 });
 
 //constants
-const dictionary = JSON.parse(fs.readFileSync("./dictionary/dictionary.json", "utf8"));
+const dictionary = JSON.parse(
+  fs.readFileSync("./dictionary/dictionary.json", "utf8")
+);
 const vowels = ["A", "E", "I", "O", "U"];
 const consonants = [
   "B",
@@ -52,8 +54,10 @@ const consonants = [
   "Y",
   "Z",
 ];
+///var vowels = "AAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEEIIIIIIIIIIIIIOOOOOOOOOOOOOUUUUU"; //todo: set as values, because random doesn't give nice letters
+//var consonants = "BBCCCDDDDDDFFGGGHHJKLLLLLMMMMNNNNNNNNPPPPQRRRRRRRRRSSSSSSSSSTTTTTTTTTVWXYZ";
+
 var letterCount = 0;
-var users = [];
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
@@ -72,30 +76,71 @@ io.on("connection", function (socket) {
     socket.username = values.username;
     socket.roomname = values.room;
 
-    socket.join(socket.roomname);
-    users.push(socket.username);
+    //check for password
+    if (socket.adapter.rooms[socket.roomname]) {
+      if (socket.adapter.rooms[socket.roomname].password) {
+        if (
+          socket.adapter.rooms[socket.roomname].password === values.password
+        ) {
+          // join private game
+          socket.join(socket.roomname);
+        } else {
+          // wrong password
+          io.sockets.connected[socket.id].emit(
+            "wrongPassword",
+            socket.roomname
+          );
+          return;
+        }
+      }
+    } else {
+      //no password just join
+      socket.join(socket.roomname);
+    }
 
     io.sockets.in(socket.roomname).emit("userAdded", socket.username);
     io.sockets
       .in(socket.roomname)
       .emit("message", socket.username + " joined the room");
+
+    //set room values when hosting
+    if (!socket.adapter.rooms[socket.roomname].host) {
+      socket.adapter.rooms[socket.roomname].host = socket.username;
+      socket.adapter.rooms[socket.roomname].type = values.type;
+      socket.adapter.rooms[socket.roomname].password = values.password;
+    }
   });
 
   socket.on("getUsers", function () {
+    var users = [];
+    for (socketID in io.nsps["/"].adapter.rooms[socket.roomname].sockets) {
+      var nickname = io.nsps["/"].connected[socketID].username;
+      users.push(nickname);
+    }
+
     io.sockets.in(socket.roomname).emit("users", users);
   });
 
   //remove the user
   socket.on("disconnect", () => {
-    index = users.indexOf(socket.username);
-    if (index > -1) {
-      users.splice(index, 1);
-    }
-
     io.sockets.in(socket.roomname).emit("removeUser", socket.username);
     io.sockets
       .in(socket.roomname)
       .emit("message", socket.username + " left the room");
+  });
+
+  //rooms
+  socket.on("getRooms", function () {
+    rooms = socket.adapter.rooms;
+
+    //don't include rooms with no host
+    for (const room in rooms) {
+      if (!rooms[room].host) {
+        delete rooms[room];
+      }
+    }
+
+    io.sockets.emit("rooms", rooms);
   });
 
   // select letters event
@@ -145,22 +190,29 @@ const selectLetter = (arr) => {
   return arr[Math.floor(Math.random() * arr.length)];
 };
 
+function shuffle(str) {
+  return str
+    .split("")
+    .sort(function () {
+      return 0.5 - Math.random();
+    })
+    .join("");
+}
 const checkAnswers = (socket) => {
   // todo: check for users who didn't submit answer and set score to 0
 
   roundAnswers.forEach((response) => {
     //check response.answer if is correct word
-    var correctWord  = dictionary[response.answer];
-    
+    var correctWord = dictionary[response.answer];
+
     //set score
-    if(correctWord){
+    if (correctWord) {
       response.score = response.answer.length;
       response.definition = correctWord;
-    }else{
+    } else {
       response.score = 0;
-      response.definition = '';
+      response.definition = "";
     }
-    
   });
 
   io.sockets.in(socket.roomname).emit("showAnswers", roundAnswers);
