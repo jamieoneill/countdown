@@ -20,6 +20,7 @@ $(function () {
 
   $(".sidebarCollapse").on("click", function () {
     $("#sidebar").toggleClass("active");
+    $("#notification").text("");
   });
 
   var socket = io.connect();
@@ -42,6 +43,7 @@ $(function () {
   socket.on("removeUser", function (user) {
     $("#users").append($("<li>").text(user));
     $("li:contains('" + user + "')").remove();
+    $("#users").scrollTop($("#users")[0].scrollHeight);
   });
 
   //request letter
@@ -163,6 +165,14 @@ $(function () {
       $("#messages").append($("<li>").text(msg));
     }
     $("#messages").scrollTop($("#messages")[0].scrollHeight);
+
+    currentNotes = $("#notification").text();
+    if (currentNotes) {
+      updateNote = parseInt(currentNotes) + 1;
+      $("#notification").text(updateNote);
+    } else {
+      $("#notification").text("1");
+    }
   });
 
   //send message

@@ -45,12 +45,12 @@
           <article class="card-group-item" style="height: 50vh;">
             <header
               class="card-header"
-              style="display: flex; justify-content: space-between;"
+              style="display: flex; justify-content: space-between;  position: relative;"
             >
               <h6 class="title" style="margin: auto;">
                 Room: <span class="room-title"></span>
               </h6>
-              <button type="button" class="btn btn-info sidebarCollapse chat">
+              <button type="button" class="btn btn-info sidebarCollapse right">
                 <i class="fas fa-align-left"></i>
                 <span>Back</span>
               </button>
@@ -91,17 +91,14 @@
 
       <!-- Page Content -->
       <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <div class="container-fluid">
-            <button type="button" class="btn btn-info sidebarCollapse">
-              <i class="fas fa-align-left"></i>
-              <span>Chat</span>
-            </button>
-          </div>
-        </nav>
+        <button type="button" class="btn btn-info sidebarCollapse left">
+          <i class="fas fa-align-left"></i>
+          <span>Chat</span>
+          <span id="notification" class="badge"></span>
+        </button>
 
         <!-- Start letterRound-->
-        <div id="letterRound">
+        <div id="letterRound" class="gameView">
           <div
             id="letterHolder"
             class="form-group text-center"

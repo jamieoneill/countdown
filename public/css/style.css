@@ -24,7 +24,32 @@ body {
 }
 
 .sidebarCollapse {
+  position: absolute;
   display: none;
+  border-radius: 0rem;
+  height: 44px;
+}
+.sidebarCollapse:focus {
+  outline: none;
+  box-shadow: none;
+}
+.sidebarCollapse.left {
+  top: 0;
+  left: 0;
+}
+
+.sidebarCollapse.right {
+  top: 0;
+  right: 0;
+}
+
+.sidebarCollapse .badge {
+  position: absolute;
+  top: 30px;
+  padding: 4px 6px;
+  border-radius: 50%;
+  background-color: #f39c12;
+  color: white;
 }
 
 a[data-toggle="collapse"] {
@@ -48,6 +73,13 @@ a[data-toggle="collapse"] {
   padding: 20px;
   min-height: 100vh;
   transition: all 0.3s;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gameView {
+  flex-grow: 1;
 }
 
 /* ---------------------------------------------------
@@ -55,13 +87,12 @@ a[data-toggle="collapse"] {
 ----------------------------------------------------- */
 
 @media (max-width: 768px) {
-
   #sidebar {
     min-width: 100vw;
     max-width: 100vw;
     margin-left: -100vw;
   }
-  
+
   #sidebar.active {
     margin-left: 0vw;
   }
@@ -74,15 +105,18 @@ a[data-toggle="collapse"] {
   MESSAGES
 ----------------------------------------------------- */
 
-#messages, #users {
+#messages,
+#users {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
-#messages li, #users li {
+#messages li,
+#users li {
   padding: 5px 10px;
 }
-#messages li:nth-child(odd), #users li:nth-child(odd){
+#messages li:nth-child(odd),
+#users li:nth-child(odd) {
   background: #eee;
 }
 #messages #users {
