@@ -18,6 +18,10 @@ $(function () {
   }
   /* END PWA FUNCTIONS */
 
+  $(".sidebarCollapse").on("click", function () {
+    $("#sidebar").toggleClass("active");
+  });
+
   var socket = io.connect();
   var username;
   var room;

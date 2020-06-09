@@ -37,12 +37,23 @@
 
   <body>
     <!-- <span>You are now</span> <span><b class="page-status"></b></span> -->
-    <div class="row">
-      <div class="col-sm-4">
+
+    <div class="wrapper">
+      <!-- Sidebar -->
+      <nav id="sidebar">
         <div class="card">
           <article class="card-group-item" style="height: 50vh;">
-            <header class="card-header">
-              <h6 class="title">Room: <span class="room-title"></span></h6>
+            <header
+              class="card-header"
+              style="display: flex; justify-content: space-between;"
+            >
+              <h6 class="title" style="margin: auto;">
+                Room: <span class="room-title"></span>
+              </h6>
+              <button type="button" class="btn btn-info sidebarCollapse chat">
+                <i class="fas fa-align-left"></i>
+                <span>Back</span>
+              </button>
             </header>
             <div class="filter-content">
               <div class="card-body">
@@ -76,10 +87,21 @@
             </div>
           </article>
         </div>
-      </div>
+      </nav>
 
-      <div class="col-sm-8">
-        <div class="container">
+      <!-- Page Content -->
+      <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+            <button type="button" class="btn btn-info sidebarCollapse">
+              <i class="fas fa-align-left"></i>
+              <span>Chat</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Start letterRound-->
+        <div id="letterRound">
           <div
             id="letterHolder"
             class="form-group text-center"
@@ -122,6 +144,7 @@
             </div>
           </div>
         </div>
+        <!-- End letterRound-->
       </div>
     </div>
   </body>
