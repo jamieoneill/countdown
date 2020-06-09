@@ -77,8 +77,9 @@ io.on("connection", function (socket) {
     socket.roomname = values.room;
 
     //check for password
-    if (socket.adapter.rooms[socket.roomname]) {
-      if (socket.adapter.rooms[socket.roomname].password) {
+    if (io.nsps["/"].adapter.rooms[socket.roomname]) {
+      console.log("there is a room");
+      if (io.nsps["/"].adapter.rooms[socket.roomname].password != "") {
         if (
           socket.adapter.rooms[socket.roomname].password === values.password
         ) {
@@ -92,9 +93,12 @@ io.on("connection", function (socket) {
           );
           return;
         }
+      } else {
+        //no password just join
+        socket.join(socket.roomname);
       }
     } else {
-      //no password just join
+      //no room create it
       socket.join(socket.roomname);
     }
 
@@ -107,6 +111,7 @@ io.on("connection", function (socket) {
     if (!socket.adapter.rooms[socket.roomname].host) {
       socket.adapter.rooms[socket.roomname].host = socket.username;
       socket.adapter.rooms[socket.roomname].type = values.type;
+      socket.adapter.rooms[socket.roomname].open = values.open;
       socket.adapter.rooms[socket.roomname].password = values.password;
     }
   });
