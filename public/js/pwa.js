@@ -18,6 +18,10 @@ $(function () {
   }
   /* END PWA FUNCTIONS */
 
+  //initial view
+  $("#startGame").prop("disabled", true);
+  $("#letterRound").hide();
+
   $(".sidebarCollapse").on("click", function () {
     $("#sidebar").toggleClass("active");
     $("#notification").text("");
@@ -25,13 +29,20 @@ $(function () {
 
   var socket = io.connect();
   var username;
+  var host;
   var roomSelected = false;
   var gameStarted = false;
   var roundLetters = { letters: [], counts: {} };
 
   //rounds
+  $("#startGame").click(function (e) {
+    socket.emit("startGame");
+  });
+
   function setLetterRound() {
-    $("letterRound").show();
+    //TODO: add random user to be selecting letters
+
+    $("#letterRound").show();
     $("#letterHolder").empty();
     $(".letterButton").prop("disabled", false);
     $("#roughWork").val("");
@@ -50,8 +61,31 @@ $(function () {
   //remove user
   socket.on("removeUser", function (user) {
     $("#users").append($("<li>").text(user));
-    $("li:contains('" + user + "')").remove();
-    $("#users").scrollTop($("#users")[0].scrollHeight);
+    $("#users li:contains('" + user + "')").remove();
+  });
+
+  socket.on("scores", function (scoreboard) {
+    $("#scores").empty();
+    scoreboard.forEach((user) => {
+      if (user.playing) {
+        $("#scores").append(
+          $('<li style="background: #eee;">').text(
+            user.name + " - " + user.score
+          )
+        );
+      } else {
+        $("#scores").append(
+          $('<li class="text-muted">').text(user.name + " - " + user.score)
+        );
+      }
+    });
+  });
+
+  socket.on("triggerGame", function () {
+    $("#startGameScreen").hide();
+
+    socket.emit("getScores");
+    setLetterRound();
   });
 
   //request letter
@@ -219,7 +253,8 @@ $(function () {
     socket.emit("getRooms");
     socket.on("rooms", function (getRooms) {
       if (!roomSelected) {
-        var table_body = '<div class="table-responsive"><table class="table table-custom"><thead><tr>';
+        var table_body =
+          '<div class="table-responsive"><table class="table table-custom"><thead><tr>';
         table_body +=
           '<th scope="col">Room</th> <th scope="col">Type</th> <th scope="col">Host</th>  <th scope="col">Players</th> <th scope="col">Open</th> <th scope="col"></th>';
         table_body += "</tr></thead>";
@@ -320,6 +355,9 @@ $(function () {
                 results.open = createRoom.value[2];
                 results.password = createRoom.value[3];
 
+                //this user is the host
+                host = true;
+
                 addUser(results);
               }
             });
@@ -351,9 +389,16 @@ $(function () {
       }
     });
 
-    // access results here by chaining to the returned promise
+    //room title
     statusElem = document.querySelector(".room-title");
     statusElem.innerHTML = values.room;
+
+    //host can start game
+    if (host) {
+      $("#startGame").prop("disabled", false);
+    } else {
+      $("#startGame").html("Waiting for host to start the game...");
+    }
   }
 
   //wrong password find another room

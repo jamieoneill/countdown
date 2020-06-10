@@ -115,6 +115,10 @@ a[data-toggle="collapse"] {
     line-height: 1.5;
     border-radius: 0.2rem;
   }
+
+  .text-center-custom{
+    text-align: center !important;
+  }
 }
 
 /* ---------------------------------------------------
@@ -122,19 +126,32 @@ a[data-toggle="collapse"] {
 ----------------------------------------------------- */
 
 #messages,
-#users {
+#users,
+#scores {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 #messages li,
-#users li {
+#scores li {
   padding: 5px 10px;
 }
 #messages li:nth-child(odd),
-#users li:nth-child(odd) {
+#scores li:nth-child(odd) {
   background: #eee;
 }
-#messages #users {
+#messages #scores {
   margin-bottom: 40px;
+}
+
+#users ul, #users li{
+  width: 33%;
+  float: left;
+  font-weight: bold;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.card-body-custom{
+  padding: 0px;
 }
