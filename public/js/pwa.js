@@ -25,14 +25,22 @@ $(function () {
 
   var socket = io.connect();
   var username;
-  var room;
-  var init = false;
+  var roomSelected = false;
+  var gameStarted = false;
   var roundLetters = { letters: [], counts: {} };
 
-  //add as user to room
-  roomValues = joinRoom();
-  username = roomValues[0];
-  room = roomValues[1];
+  //rounds
+  function setLetterRound() {
+    $("letterRound").show();
+    $("#letterHolder").empty();
+    $(".letterButton").prop("disabled", false);
+    $("#roughWork").val("");
+    $("#answer").val("");
+    $("#submitAnswer").prop("disabled", false);
+  }
+
+  //set username
+  getUserName();
 
   //get new users
   socket.on("userAdded", function (user) {
@@ -183,16 +191,35 @@ $(function () {
     }
   });
 
-  // OTHER FUNCTIONS
+  function getUserName() {
+    Swal.fire({
+      title: "Welcome to Countdown",
+      input: "text",
+      text: "Enter your name",
+      confirmButtonText: "Next",
+      allowOutsideClick: false,
+      showCancelButton: false,
+      inputValidator: (value) => {
+        if (!value) {
+          return "You need to enter a name";
+        }
+      },
+    }).then((name) => {
+      username = name.value;
+      joinRoom();
+    });
+  }
+
   //join a room
-  async function joinRoom() {
+  function joinRoom() {
     var results = {};
+    results.username = username;
 
     //get rooms
     socket.emit("getRooms");
     socket.on("rooms", function (getRooms) {
-      if (!init) {
-        var table_body = '<table class="table"><thead><tr>';
+      if (!roomSelected) {
+        var table_body = '<div class="table-responsive"><table class="table table-custom"><thead><tr>';
         table_body +=
           '<th scope="col">Room</th> <th scope="col">Type</th> <th scope="col">Host</th>  <th scope="col">Players</th> <th scope="col">Open</th> <th scope="col"></th>';
         table_body += "</tr></thead>";
@@ -209,7 +236,7 @@ $(function () {
               "<td>" + Object.keys(getRooms[room].sockets).length + "</td>";
             table_body += "<td>" + getRooms[room].open + "</td>";
             table_body +=
-              '<td><button class="btn btn-success joinButton" data-open="' +
+              '<td><button class="btn btn-success btn-custom joinButton" data-open="' +
               getRooms[room].open +
               '" id="' +
               room +
@@ -220,103 +247,86 @@ $(function () {
           table_body += "<tr><td>No open games</td></tr>";
         }
 
-        table_body += "</tbody></table>";
+        table_body += "</tbody></table></div>";
 
-        //add username
         Swal.fire({
-          title: "Username",
-          input: "text",
-          text: "Enter your name",
-          confirmButtonText: "Next",
+          title: "Join Game",
+          html: table_body,
+          confirmButtonText: "Create a room",
           allowOutsideClick: false,
           showCancelButton: false,
-          inputValidator: (value) => {
-            if (!value) {
-              return "You need to enter a name";
-            }
-          },
-        }).then((name) => {
-          results.username = name.value;
+          onBeforeOpen: () => {
+            //add click to join buttons
+            $(".joinButton").on("click", function (event) {
+              //joining a existing room
+              results.room = $(this)[0].id;
 
-          Swal.fire({
-            title: "Join Game",
-            html: table_body,
-            confirmButtonText: "Create a room",
-            allowOutsideClick: false,
-            showCancelButton: false,
-            onBeforeOpen: () => {
-              //add click to join buttons
-              $(".joinButton").on("click", function (event) {
-                //joining a existing room
-                results.room = $(this)[0].id;
+              if ($(this)[0].attributes["data-open"].value === "Private") {
+                Swal.fire({
+                  title: "Password",
+                  input: "text",
+                  confirmButtonText: "Enter",
+                  allowOutsideClick: false,
+                  showCancelButton: false,
+                  inputValidator: (value) => {
+                    if (!value) {
+                      return "You need to enter the password";
+                    }
+                  },
+                }).then((password) => {
+                  //join private game
+                  results.password = password.value;
 
-                if ($(this)[0].attributes["data-open"].value === "Private") {
-                  Swal.fire({
-                    title: "Password",
-                    input: "text",
-                    confirmButtonText: "Enter",
-                    allowOutsideClick: false,
-                    showCancelButton: false,
-                    inputValidator: (value) => {
-                      if (!value) {
-                        return "You need to enter the password";
-                      }
-                    },
-                  }).then((password) => {
-                    //join private game
-                    results.password = password.value;
-
-                    addUser(results);
-                    Swal.close();
-                  });
-                } else {
                   addUser(results);
                   Swal.close();
-                }
-              });
-            },
-          }).then((newRoom) => {
-            //creating new room
-            if (newRoom.isConfirmed) {
-              Swal.fire({
-                title: "Room Details",
-                html:
-                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter room name</div>' +
-                  '<input id="swal-roomname" class="swal2-input">' +
-                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
-                  '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
-                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game availability</div>' +
-                  '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Private"><span class="swal2-label">Private</span></label></div>' +
-                  '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter password</div>' +
-                  '<input id="swal-password" placeholder="password only needed for private games..." class="swal2-input">',
-                focusConfirm: false,
-                preConfirm: () => {
-                  return [
-                    document.getElementById("swal-roomname").value,
-                    document.querySelector(
-                      'input[name="swal2-radio-type"]:checked'
-                    ).value,
-                    document.querySelector(
-                      'input[name="swal2-radio-open"]:checked'
-                    ).value,
-                    document.getElementById("swal-password").value,
-                  ];
-                },
-              }).then((createRoom) => {
-                if (createRoom.value) {
-                  results.room = createRoom.value[0];
-                  results.type = createRoom.value[1];
-                  results.open = createRoom.value[2];
-                  results.password = createRoom.value[3];
+                });
+              } else {
+                addUser(results);
+                Swal.close();
+              }
+            });
+          },
+        }).then((newRoom) => {
+          //creating new room
+          if (newRoom.isConfirmed) {
+            Swal.fire({
+              title: "Room Details",
+              html:
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter room name</div>' +
+                '<input id="swal-roomname" class="swal2-input">' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
+                '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game availability</div>' +
+                '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Private"><span class="swal2-label">Private</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter password</div>' +
+                '<input id="swal-password" placeholder="password only needed for private games..." class="swal2-input">',
+              focusConfirm: false,
+              preConfirm: () => {
+                return [
+                  document.getElementById("swal-roomname").value,
+                  document.querySelector(
+                    'input[name="swal2-radio-type"]:checked'
+                  ).value,
+                  document.querySelector(
+                    'input[name="swal2-radio-open"]:checked'
+                  ).value,
+                  document.getElementById("swal-password").value,
+                ];
+              },
+            }).then((createRoom) => {
+              if (createRoom.value) {
+                results.room = createRoom.value[0];
+                results.type = createRoom.value[1];
+                results.open = createRoom.value[2];
+                results.password = createRoom.value[3];
 
-                  addUser(results);
-                }
-              });
-            }
-          });
+                addUser(results);
+              }
+            });
+          }
         });
 
-        init = true;
+        roomSelected = true;
       }
     });
   }
@@ -354,7 +364,7 @@ $(function () {
         "You did not enter the correct password for room: " + roomname
       )
       .then(() => {
-        init = false;
+        roomSelected = false;
         joinRoom();
       });
   });
