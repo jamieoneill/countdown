@@ -155,7 +155,22 @@ io.on("connection", function (socket) {
 
   //startGame
   socket.on("startGame", function () {
-    io.sockets.emit("triggerGame");
+    io.sockets.in(socket.roomname).emit("triggerGame");
+  });
+
+  socket.on("startRound", function (round) {
+    //select random player to choose
+    var players = socket.adapter.rooms[socket.roomname].scoreBoard.filter(
+      (obj) => {
+        return obj.playing === true;
+      }
+    );
+
+    randomPlayer = players[Math.floor(Math.random() * players.length)];
+
+    io.sockets
+      .in(socket.roomname)
+      .emit("playersRound", { round: round, name: randomPlayer.name });
   });
 
   // select letters event

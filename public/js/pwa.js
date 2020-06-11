@@ -40,7 +40,7 @@ $(function () {
   });
 
   function setLetterRound() {
-    //TODO: add random user to be selecting letters
+    socket.emit("startRound", "letters");
 
     $("#letterRound").show();
     $("#letterHolder").empty();
@@ -48,6 +48,9 @@ $(function () {
     $("#roughWork").val("");
     $("#answer").val("");
     $("#submitAnswer").prop("disabled", false);
+
+    $("#vowel").prop("disabled", true);
+    $("#consonant").prop("disabled", true);
   }
 
   //set username
@@ -88,6 +91,24 @@ $(function () {
     setLetterRound();
   });
 
+  socket.on("playersRound", function (roundObj) {
+    $("#roundUpdate").html(
+      roundObj.name + " is selecting " + roundObj.round + "..."
+    );
+
+    switch (roundObj.round) {
+      case "letters":
+        //only this user can select letters
+        if (username == roundObj.name) {
+          $("#vowel").prop("disabled", false);
+          $("#consonant").prop("disabled", false);
+        }
+        break;
+      case "numbers":
+        break;
+    }
+  });
+
   //request letter
   $(".letterButton").click(function (e) {
     socket.emit("selectLetter", e.target.id);
@@ -107,7 +128,10 @@ $(function () {
       });
       roundLetters.counts = count;
 
-      alert("countdown");
+      Toast.fire({
+        title: "Countdown!",
+      });
+      $("#roundUpdate").html("Enter your word...");
 
       socket.emit("startTimer", 30);
       $(".letterButton").prop("disabled", true);
@@ -173,6 +197,7 @@ $(function () {
 
     $("#answer").prop("disabled", true);
     $("#submitAnswer").prop("disabled", true);
+    $("#roundUpdate").html("Waiting for round to end...");
   }
 
   //timer
@@ -180,7 +205,11 @@ $(function () {
     $("#timer").text(timeLeft);
 
     if (timeLeft === 0) {
-      alert("time's up!");
+      Toast.fire({
+        title: "Time's Up!",
+      });
+      $("#roundUpdate").html("");
+
       $("#answer").prop("disabled", true);
       $("#submitAnswer").prop("disabled", true);
     }
@@ -412,5 +441,16 @@ $(function () {
         roomSelected = false;
         joinRoom();
       });
+  });
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    onOpen: (toast) => {
+      toast.addEventListener("mouseenter", Swal.stopTimer);
+      toast.addEventListener("mouseleave", Swal.resumeTimer);
+    },
   });
 }); //end main
