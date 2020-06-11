@@ -133,7 +133,7 @@ $(function () {
       });
       $("#roundUpdate").html("Enter your word...");
 
-      socket.emit("startTimer", 30);
+      socket.emit("startTimer");
       $(".letterButton").prop("disabled", true);
     }
   });
@@ -224,6 +224,50 @@ $(function () {
           response.user + " : " + response.answer + " : " + response.score
         )
       );
+    });
+
+    $("#roundUpdate").html("");
+    //show end of round screen
+    var res = Math.max.apply(
+      Math,
+      responses.map(function (o) {
+        return o.score;
+      })
+    );
+    var highest = responses.find(function (o) {
+      return o.score == res;
+    });
+
+    var html = '<div style="text-align:left">';
+    html += "<h3>Best word: </h3>";
+    html +=
+      '<p><font color="blue">' +
+      highest.answer +
+      '</font> by  <font color="blue">' +
+      highest.user +
+      "</font></p> ";
+    html += "<h3>Definition:</h3>";
+    html += "<p>" + highest.definition.substring(0, 200) + "...</p><br>";
+    html += "</div>";
+
+    /*
+    html += '<ul style="list-style-type: none;">';
+    responses.forEach((response) => {
+      html += "<li>";
+      html += response.user + " : " + response.answer + " - " + response.score;
+      html += "</li>";
+    });
+    html += "</ul>";
+    */
+
+    Swal.fire({
+      title: "Round complete",
+      html: html,
+      timer: 15000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      showCancelButton: false,
     });
   });
 

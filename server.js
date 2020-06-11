@@ -93,6 +93,7 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].vowels = vowels;
       socket.adapter.rooms[socket.roomname].consonants = consonants;
       socket.adapter.rooms[socket.roomname].letterCount = 0;
+      socket.adapter.rooms[socket.roomname].runningTimer = false;
     }
 
     socket.adapter.rooms[socket.roomname].scoreBoard.push({
@@ -199,19 +200,26 @@ io.on("connection", function (socket) {
   });
 
   //countdown timer
-  timer = 30;
-  socket.on("startTimer", (interval) => {
-    let countdown = setInterval(() => {
-      timer--;
-      io.sockets.in(socket.roomname).emit("timer", timer);
+  socket.on("startTimer", () => {
+    timer = 30;
+    running = socket.adapter.rooms[socket.roomname].runningTimer;
 
-      if (timer === 0) {
-        clearInterval(countdown);
-        timer = 30;
-        checkAnswers(socket);
-        resetRound(socket);
-      }
-    }, 1000);
+    if (!running) {
+      socket.adapter.rooms[socket.roomname].runningTimer = true;
+
+      let countdown = setInterval(() => {
+        timer--;
+        io.sockets.in(socket.roomname).emit("timer", timer);
+
+        if (timer === 0) {
+          clearInterval(countdown);
+          timer = 30;
+          running = false;
+          checkAnswers(socket);
+          resetRound(socket);
+        }
+      }, 1000);
+    }
   });
 });
 
