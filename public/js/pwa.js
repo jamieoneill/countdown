@@ -20,7 +20,7 @@ $(function () {
 
   //initial view
   $("#startGame").prop("disabled", true);
-  $("#letterRound").hide();
+  $("#roundHolder").hide();
 
   $(".sidebarCollapse").on("click", function () {
     $("#sidebar").toggleClass("active");
@@ -31,26 +31,60 @@ $(function () {
   var username;
   var host;
   var roomSelected = false;
-  var gameStarted = false;
+  var roundOrder = ["letters", "letters", "numbers", "numbers", "conundrum"];
+  var roundNumber = 0;
+  var currentRound;
   var roundLetters = { letters: [], counts: {} };
 
   //rounds
   $("#startGame").click(function (e) {
     socket.emit("startGame");
+    $("#roundHolder").show();
   });
 
-  function setLetterRound() {
-    socket.emit("startRound", "letters");
+  function setRound(round) {
+    socket.emit("startRound", round);
+    currentRound = round;
 
-    $("#letterRound").show();
+    switch (round) {
+      case "letters":
+        $("#selectNumberButtons").hide();
+        $("#selectLetterButtons").show();
+        $("#numberHolder").hide();
+        $("#answerLetter").show();
+        $("#answerNumber").hide();
+        break;
+      case "numbers":
+        $("#selectNumberButtons").show();
+        $("#selectLetterButtons").hide();
+        $("#numberHolder").show();
+        $("#answerLetter").hide();
+        $("#answerNumber").show();
+        break;
+      case "conundrum":
+        $("#selectNumberButtons").hide();
+        $("#selectLetterButtons").hide();
+        $("#numberHolder").hide();
+        $("#answerLetter").hide();
+        $("#answerNumber").hide();
+        break;
+    }
+
+    clearFields();
+  }
+
+  function clearFields() {
+    $("#timer").text("30");
     $("#letterHolder").empty();
-    $(".letterButton").prop("disabled", false);
+    $("#numberHolder").empty();
+    $(".letterButton").prop("disabled", true);
+    $(".numberButton").prop("disabled", true);
     $("#roughWork").val("");
-    $("#answer").val("");
+    $("#answerLetter").val("");
+    $("#answerNumber").val("");
+    $("#answerLetter").prop("disabled", false);
+    $("#answerNumber").prop("disabled", false);
     $("#submitAnswer").prop("disabled", false);
-
-    $("#vowel").prop("disabled", true);
-    $("#consonant").prop("disabled", true);
   }
 
   //set username
@@ -88,7 +122,7 @@ $(function () {
     $("#startGameScreen").hide();
 
     socket.emit("getScores");
-    setLetterRound();
+    setRound(roundOrder[roundNumber]);
   });
 
   socket.on("playersRound", function (roundObj) {
@@ -96,15 +130,20 @@ $(function () {
       roundObj.name + " is selecting " + roundObj.round + "..."
     );
 
+    //only this user can select
     switch (roundObj.round) {
       case "letters":
-        //only this user can select letters
         if (username == roundObj.name) {
-          $("#vowel").prop("disabled", false);
-          $("#consonant").prop("disabled", false);
+          $(".letterButton").prop("disabled", false);
         }
         break;
       case "numbers":
+        if (username == roundObj.name) {
+          $(".numberButton").prop("disabled", false);
+        }
+        break;
+      case "conundrum":
+        //TODO: wait and see. might not need anything
         break;
     }
   });
@@ -120,7 +159,7 @@ $(function () {
     roundLetters.letters.push(letter);
 
     //start countdown when all letters are selected
-    if ($("#letterHolder")[0].innerText.length == 9) {
+    if ($("#letterHolder")[0].children.length == 9) {
       //add counts for each letter
       var count = {};
       roundLetters.letters.forEach(function (i) {
@@ -139,8 +178,8 @@ $(function () {
   });
 
   //check answer for errors before submit
-  $("#answer").keyup(function (e) {
-    let strToArr = $("#answer").val().toUpperCase().split("");
+  $("#answerLetter").keyup(function (e) {
+    let strToArr = $("#answerLetter").val().toUpperCase().split("");
     let hasError = false;
     let errorTitle = "";
 
@@ -171,16 +210,62 @@ $(function () {
     }
 
     if (hasError) {
-      $("#answer").attr("title", errorTitle);
-      $("#answer").tooltip("show");
+      $("#answerLetter").attr("title", errorTitle);
+      $("#answerLetter").tooltip("show");
       $("#submitAnswer").prop("disabled", true);
     } else {
-      $("#answer").tooltip("dispose");
+      $("#answerLetter").tooltip("dispose");
       $("#submitAnswer").prop("disabled", false);
 
       if (e.originalEvent.key === "Enter") {
         submitAnswer();
       }
+    }
+  });
+
+  //request number
+  $(".numberButton").click(function (e) {
+    socket.emit("selectNumber", e.target.id);
+  });
+
+  //receive letter
+  socket.on("selectNumber", function (number, numberToReach) {
+    $("#letterHolder").append($("<span>").text(number + "   "));
+
+    //start countdown when all numbers are selected
+    if ($("#letterHolder")[0].children.length == 6) {
+      $("#numberHolder").text(numberToReach);
+
+      Toast.fire({
+        title: "Countdown!",
+      });
+      $("#roundUpdate").html("Enter your solution...");
+
+      socket.emit("startTimer");
+      $(".numberButton").prop("disabled", true);
+    }
+  });
+
+  //check answer for errors before submit
+  $("#answerNumber").keyup(function (e) {
+    let str = $("#answerNumber").val();
+    let hasError = false;
+    let errorTitle = "";
+    var letters = /^[x0-9 =\n+-/*()]+$/;
+
+    //only allow numbers and maths symbols
+    if (!str.match(letters)) {
+      hasError = true;
+      errorTitle = "You can not include letters in the answer";
+    }
+
+    if (hasError) {
+      $("#answerNumber").attr("title", errorTitle);
+      $("#answerNumber").tooltip("show");
+      $("#submitAnswer").prop("disabled", true);
+    } else {
+      $("#answerNumber").tooltip("dispose");
+      $("#submitAnswer").prop("disabled", false);
     }
   });
 
@@ -190,12 +275,20 @@ $(function () {
 
   //submit answer
   function submitAnswer() {
-    socket.emit("submitAnswer", {
-      answer: $("#answer").val(),
-      user: username,
-    });
+    if (currentRound == "letters") {
+      socket.emit("submitAnswer", {
+        answer: $("#answerLetter").val(),
+        user: username,
+      });
+    } else if (currentRound == "numbers") {
+      socket.emit("submitAnswer", {
+        answer: $("#answerNumber").val(),
+        user: username,
+      });
+    }
 
-    $("#answer").prop("disabled", true);
+    $("#answerNumber").prop("disabled", true);
+    $("#answerLetter").prop("disabled", true);
     $("#submitAnswer").prop("disabled", true);
     $("#roundUpdate").html("Waiting for round to end...");
   }
@@ -210,22 +303,14 @@ $(function () {
       });
       $("#roundUpdate").html("");
 
-      $("#answer").prop("disabled", true);
+      $("#answerNumber").prop("disabled", true);
+      $("#answerLetter").prop("disabled", true);
       $("#submitAnswer").prop("disabled", true);
     }
   });
 
   //get answers
-  socket.on("showAnswers", function (responses) {
-    responses.forEach((response) => {
-      console.log(response);
-      $("#messages").append(
-        $("<li>").text(
-          response.user + " : " + response.answer + " : " + response.score
-        )
-      );
-    });
-
+  socket.on("showAnswers", function (responses, bestSolution) {
     $("#roundUpdate").html("");
     //show end of round screen
     var res = Math.max.apply(
@@ -234,40 +319,87 @@ $(function () {
         return o.score;
       })
     );
-    var highest = responses.find(function (o) {
+    var best = responses.find(function (o) {
       return o.score == res;
     });
 
-    var html = '<div style="text-align:left">';
-    html += "<h3>Best word: </h3>";
-    html +=
-      '<p><font color="blue">' +
-      highest.answer +
-      '</font> by  <font color="blue">' +
-      highest.user +
-      "</font></p> ";
-    html += "<h3>Definition:</h3>";
-    html += "<p>" + highest.definition.substring(0, 200) + "...</p><br>";
-    html += "</div>";
+    var scoresHTML = "";
 
-    /*
-    html += '<ul style="list-style-type: none;">';
-    responses.forEach((response) => {
-      html += "<li>";
-      html += response.user + " : " + response.answer + " - " + response.score;
-      html += "</li>";
-    });
-    html += "</ul>";
-    */
+    if (best) {
+      if (currentRound == "letters") {
+        scoresHTML += '<div style="text-align:center">';
+        scoresHTML += "<h3>Best Word</h3>";
+        scoresHTML +=
+          '<p><font color="blue">' +
+          best.answer +
+          '</font> by  <font color="blue">' +
+          best.user +
+          "</font></p> ";
+        scoresHTML += "<h3>Definition</h3>";
+        scoresHTML += "<p>" + best.definition.substring(0, 200) + "...</p><br>";
+        scoresHTML += "</div>";
+      } else if (currentRound == "numbers") {
+        scoresHTML += '<div style="text-align:center">';
+        scoresHTML += "<h3>Best Score</h3>";
+        scoresHTML +=
+          '<p><font color="blue">' +
+          best.score +
+          '</font> points by <font color="blue">' +
+          best.user +
+          "</font></p> ";
+      }
+    }
 
+    //TODO: getting for numbers. need to add highest possible word here
+    scoresHTML += '<div style="text-align:center">';
+    scoresHTML += "<h3>Best Possible Solution</h3>";
+    scoresHTML +=
+      '<p style="white-space: pre-line;">' + bestSolution + "</p><br>";
+    scoresHTML += "</div>";
+
+    scoresHTML +=
+      '<div id="tempScores" style="text-align:center;height: 200px;">';
+    scoresHTML += "<h3>Round Scores</h3>";
+
+    if (currentRound == "letters") {
+      responses.forEach((response) => {
+        scoresHTML +=
+          "<span>" +
+          response.user +
+          ": " +
+          response.answer +
+          " - " +
+          response.score +
+          " points </span>";
+      });
+    } else if (currentRound == "numbers") {
+      responses.forEach((response) => {
+        scoresHTML +=
+          "<span>" +
+          response.user +
+          ": " +
+          response.answer.split("=")[response.answer.split("=").length - 1] +
+          " - " +
+          response.score +
+          " points </span>";
+      });
+    }
+    scoresHTML += "</div>";
+
+    roundNumber++;
     Swal.fire({
       title: "Round complete",
-      html: html,
+      html: scoresHTML,
       timer: 15000,
       timerProgressBar: true,
       showConfirmButton: false,
       allowOutsideClick: false,
       showCancelButton: false,
+      preConfirm: () => {
+        $("#tempScores").scrollTop($("#tempScores")[0].scrollHeight);
+      },
+    }).then(() => {
+      setRound(roundOrder[roundNumber]);
     });
   });
 

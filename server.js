@@ -2,6 +2,8 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const { chain, evaluate } = require("mathjs");
+const solver = require("./dictionary/cntdn.js");
 
 const key = fs.readFileSync("./certs/localhost.key");
 const cert = fs.readFileSync("./certs/localhost.crt");
@@ -30,10 +32,12 @@ server.listen(port, "0.0.0.0", function () {
 const dictionary = JSON.parse(
   fs.readFileSync("./dictionary/dictionary.json", "utf8")
 );
-var vowels =
+const vowels =
   "AAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEEIIIIIIIIIIIIIOOOOOOOOOOOOOUUUUU";
-var consonants =
+const consonants =
   "BBCCCDDDDDDFFGGGHHJKLLLLLMMMMNNNNNNNNPPPPQRRRRRRRRRSSSSSSSSSTTTTTTTTTVWXYZ";
+const smallNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const largeNumbers = [25, 50, 75, 100];
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
@@ -88,12 +92,17 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].type = values.type;
       socket.adapter.rooms[socket.roomname].open = values.open;
       socket.adapter.rooms[socket.roomname].password = values.password;
+      socket.adapter.rooms[socket.roomname].started = false;
       socket.adapter.rooms[socket.roomname].scoreBoard = [];
       socket.adapter.rooms[socket.roomname].roundAnswers = [];
       socket.adapter.rooms[socket.roomname].vowels = vowels;
       socket.adapter.rooms[socket.roomname].consonants = consonants;
       socket.adapter.rooms[socket.roomname].letterCount = 0;
+      socket.adapter.rooms[socket.roomname].numberCount = 0;
+      socket.adapter.rooms[socket.roomname].numberToReach = 0;
+      socket.adapter.rooms[socket.roomname].roundNumbers = [];
       socket.adapter.rooms[socket.roomname].runningTimer = false;
+      socket.adapter.rooms[socket.roomname].currentRound = "";
     }
 
     socket.adapter.rooms[socket.roomname].scoreBoard.push({
@@ -144,9 +153,9 @@ io.on("connection", function (socket) {
   socket.on("getRooms", function () {
     rooms = socket.adapter.rooms;
 
-    //don't include rooms with no host
+    //don't include rooms with no host or have already started
     for (const room in rooms) {
-      if (!rooms[room].host) {
+      if (!rooms[room].host || rooms[room].started) {
         delete rooms[room];
       }
     }
@@ -156,10 +165,13 @@ io.on("connection", function (socket) {
 
   //startGame
   socket.on("startGame", function () {
+    socket.adapter.rooms[socket.roomname].started = true;
     io.sockets.in(socket.roomname).emit("triggerGame");
   });
 
   socket.on("startRound", function (round) {
+    socket.adapter.rooms[socket.roomname].currentRound = round;
+
     //select random player to choose
     var players = socket.adapter.rooms[socket.roomname].scoreBoard.filter(
       (obj) => {
@@ -194,6 +206,32 @@ io.on("connection", function (socket) {
     }
   });
 
+  // select numbers event
+  socket.on("selectNumber", function (type) {
+    //generate numberToReach once to save on calls to server
+    if (socket.adapter.rooms[socket.roomname].numberToReach == 0) {
+      socket.adapter.rooms[socket.roomname].numberToReach =
+        selectNumber("reach").toString() +
+        selectNumber("reach").toString() +
+        selectNumber("reach").toString();
+    }
+
+    if (socket.adapter.rooms[socket.roomname].numberCount < 6) {
+      socket.adapter.rooms[socket.roomname].numberCount++;
+
+      var selectedNumber = selectNumber(type);
+      socket.adapter.rooms[socket.roomname].roundNumbers.push(selectedNumber);
+
+      io.sockets
+        .in(socket.roomname)
+        .emit(
+          "selectNumber",
+          selectedNumber,
+          socket.adapter.rooms[socket.roomname].numberToReach
+        );
+    }
+  });
+
   //get users answers
   socket.on("submitAnswer", function (response) {
     socket.adapter.rooms[socket.roomname].roundAnswers.push(response);
@@ -223,6 +261,23 @@ io.on("connection", function (socket) {
   });
 });
 
+const selectNumber = (type) => {
+  switch (type) {
+    case "small":
+      random = smallNumbers[Math.floor(Math.random() * smallNumbers.length)];
+      break;
+    case "large":
+      random = largeNumbers[Math.floor(Math.random() * largeNumbers.length)];
+      break;
+    case "reach":
+      random =
+        smallNumbers[Math.floor(Math.random() * (smallNumbers.length - 1))];
+      break;
+  }
+
+  return random;
+};
+
 const selectLetter = (socket, type) => {
   switch (type) {
     case "vowel":
@@ -246,23 +301,81 @@ const selectLetter = (socket, type) => {
 
 const checkAnswers = (socket) => {
   var roundAnswers = socket.adapter.rooms[socket.roomname].roundAnswers;
+  var bestSolution = "";
 
   roundAnswers.forEach((response) => {
-    //check response.answer if is correct word
-    var correctWord = dictionary[response.answer];
+    if (socket.adapter.rooms[socket.roomname].currentRound == "letters") {
+      //check response.answer if is correct word
+      var correctWord = dictionary[response.answer];
+      //set score
+      if (correctWord) {
+        response.score = response.answer.length;
+        response.definition = correctWord;
+      } else {
+        response.score = 0;
+        response.definition = "";
+      }
+    } else if (
+      socket.adapter.rooms[socket.roomname].currentRound == "numbers"
+    ) {
+      var hasError = false;
+      var sum;
+      var res;
 
-    //set score
-    if (correctWord) {
-      response.score = response.answer.length;
-      response.definition = correctWord;
-    } else {
-      response.score = 0;
-      response.definition = "";
+      //check each line in answer
+      var lines = response.answer.split("\n");
+      lines.forEach(function (line) {
+        //catch multiples with x char
+        if (line.includes("x")) {
+          line = line.replace("x", "*");
+        }
+
+        sum = line.split("=")[0];
+        res = line.split("=")[1];
+
+        if (evaluate(sum) != res) {
+          hasError = true;
+        }
+      });
+
+      //set score
+      if (hasError) {
+        response.score = 0;
+      } else {
+        // res will be the last = value, which should be numberToReach //TODO: this is bad and can be cheesed, work it out better
+        difference = diff(
+          res,
+          socket.adapter.rooms[socket.roomname].numberToReach
+        );
+
+        // 10 for reaching it exactly, 7 for being 1–5 away, 5 for being 6–10 away.
+        if (difference == 0) {
+          response.score = 10;
+        } else if (difference > 0 && difference < 6) {
+          response.score = 7;
+        } else if (difference > 5 && difference < 11) {
+          response.score = 5;
+        } else {
+          response.score = 0;
+        }
+      }
     }
   });
 
+  //add best solutions
+  if (socket.adapter.rooms[socket.roomname].currentRound == "letters") {
+    //TODO: get best word
+  } else if (socket.adapter.rooms[socket.roomname].currentRound == "numbers") {
+    bestSolution = solver(
+      socket.adapter.rooms[socket.roomname].roundNumbers,
+      socket.adapter.rooms[socket.roomname].numberToReach
+    );
+  }
+
   io.sockets.in(socket.roomname).emit("message", "Round scores");
-  io.sockets.in(socket.roomname).emit("showAnswers", roundAnswers);
+  io.sockets
+    .in(socket.roomname)
+    .emit("showAnswers", roundAnswers, bestSolution);
   socket.adapter.rooms[socket.roomname].roundAnswers = [];
   updateScoreboard(socket, roundAnswers);
 };
@@ -287,4 +400,13 @@ function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].vowels = vowels;
   socket.adapter.rooms[socket.roomname].consonants = consonants;
   socket.adapter.rooms[socket.roomname].letterCount = 0;
+  socket.adapter.rooms[socket.roomname].numberCount = 0;
+  socket.adapter.rooms[socket.roomname].numberToReach = 0;
+  socket.adapter.rooms[socket.roomname].roundNumbers = [];
+  socket.adapter.rooms[socket.roomname].runningTimer = false;
+  socket.adapter.rooms[socket.roomname].currentRound = "";
+}
+
+function diff(a, b) {
+  return Math.abs(a - b);
 }

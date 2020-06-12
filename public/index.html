@@ -27,6 +27,10 @@
       integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
       crossorigin="anonymous"
     ></script>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+    />
 
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 
@@ -55,8 +59,8 @@
                 Room: <span class="room-title"></span>
               </h6>
               <button type="button" class="btn btn-info sidebarCollapse right">
-                <i class="fas fa-align-left"></i>
                 <span>Back</span>
+                <i class="fas fa-arrow-right"></i>
               </button>
             </header>
             <div class="filter-content">
@@ -96,7 +100,7 @@
       <!-- Page Content -->
       <div id="content">
         <button type="button" class="btn btn-info sidebarCollapse left">
-          <i class="fas fa-align-left"></i>
+          <i class="fas fa-comments"></i>
           <span>Chat</span>
           <span id="notification" class="badge"></span>
         </button>
@@ -115,8 +119,14 @@
           </div>
         </div>
 
-        <!-- Start letterRound-->
-        <div id="letterRound" class="gameView">
+        <!-- Start roundHolder-->
+        <div id="roundHolder" class="gameView">
+          <div
+            id="numberHolder"
+            class="form-group text-center"
+            style="font-size: large;"
+          ></div>
+
           <div
             id="letterHolder"
             class="form-group text-center"
@@ -129,6 +139,15 @@
             </button>
             <button class="btn btn-primary letterButton" id="consonant">
               consonant
+            </button>
+          </div>
+
+          <div id="selectNumberButtons" class="form-group text-center">
+            <button class="btn btn-primary numberButton" id="small">
+              small
+            </button>
+            <button class="btn btn-primary numberButton" id="large">
+              large
             </button>
           </div>
 
@@ -148,22 +167,39 @@
               <input
                 type="text"
                 class="form-control"
-                id="answer"
+                id="answerLetter"
                 placeholder="Answer..."
                 data-toggle="tooltip"
                 data-placement="bottom"
                 maxlength="9"
               />
+              <textarea
+                class="form-control"
+                placeholder="Answer..."
+                rows="6"
+                data-toggle="tooltip"
+                data-placement="bottom"
+                id="answerNumber"
+              >
+              </textarea>
             </div>
             <div class="form-group col-md-6 text-center-custom">
               <button class="btn btn-success" id="submitAnswer">Submit</button>
             </div>
           </div>
         </div>
-        <!-- End letterRound-->
+        <!-- End roundHolder-->
 
         <!-- round specific message-->
-        <div class="card-footer" style="position: absolute; bottom: 0; width: 100%; margin-left: -20px">
+        <div
+          class="card-footer"
+          style="
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            margin-left: -20px;
+          "
+        >
           <span id="roundUpdate"></span>
         </div>
       </div>
