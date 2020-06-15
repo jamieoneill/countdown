@@ -116,7 +116,7 @@ a[data-toggle="collapse"] {
     border-radius: 0.2rem;
   }
 
-  .text-center-custom{
+  .text-center-custom {
     text-align: center !important;
   }
 }
@@ -127,7 +127,8 @@ a[data-toggle="collapse"] {
 
 #messages,
 #users,
-#scores {
+#scores,
+#endGameScores {
   list-style-type: none;
   margin: 0;
   padding: 0;
@@ -144,7 +145,8 @@ a[data-toggle="collapse"] {
   margin-bottom: 40px;
 }
 
-#users ul, #users li{
+#users ul,
+#users li {
   width: 33%;
   float: left;
   font-weight: bold;
@@ -152,6 +154,18 @@ a[data-toggle="collapse"] {
   margin-bottom: 5px;
 }
 
-.card-body-custom{
+#endGameScores li{
+  font-size: 20px;
+}
+
+#endGameScores li:nth-child(1) {
+  font-size: 30px;
+}
+
+#endGameScores li:nth-child(2) {
+  font-size: 25px;
+}
+
+.card-body-custom {
   padding: 0px;
 }

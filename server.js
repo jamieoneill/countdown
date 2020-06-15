@@ -38,6 +38,9 @@ const consonants =
   "BBCCCDDDDDDFFGGGHHJKLLLLLMMMMNNNNNNNNPPPPQRRRRRRRRRSSSSSSSSSTTTTTTTTTVWXYZ";
 const smallNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const largeNumbers = [25, 50, 75, 100];
+const conundrums = JSON.parse(
+  fs.readFileSync("./dictionary/conundrums.json", "utf8")
+);
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
@@ -101,7 +104,9 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].numberCount = 0;
       socket.adapter.rooms[socket.roomname].numberToReach = 0;
       socket.adapter.rooms[socket.roomname].roundNumbers = [];
+      socket.adapter.rooms[socket.roomname].conundrum = "";
       socket.adapter.rooms[socket.roomname].runningTimer = false;
+      socket.adapter.rooms[socket.roomname].timer = "";
       socket.adapter.rooms[socket.roomname].currentRound = "";
     }
 
@@ -181,6 +186,11 @@ io.on("connection", function (socket) {
 
     randomPlayer = players[Math.floor(Math.random() * players.length)];
 
+    //host controls the conundrum
+    if (socket.adapter.rooms[socket.roomname].currentRound == "conundrum") {
+      randomPlayer.name = socket.adapter.rooms[socket.roomname].host;
+    }
+
     io.sockets
       .in(socket.roomname)
       .emit("playersRound", { round: round, name: randomPlayer.name });
@@ -232,32 +242,68 @@ io.on("connection", function (socket) {
     }
   });
 
+  // select conundrum event
+  socket.on("getConundrum", function () {
+    randomCon = Object.entries(conundrums)[
+      Math.floor(Math.random() * Object.entries(conundrums).length)
+    ];
+    socket.adapter.rooms[socket.roomname].conundrum = randomCon;
+
+    io.sockets.in(socket.roomname).emit("selectConundrum", randomCon[0]);
+  });
+
   //get users answers
   socket.on("submitAnswer", function (response) {
     socket.adapter.rooms[socket.roomname].roundAnswers.push(response);
   });
 
+  socket.on("checkConundrum", function (response) {
+    response.correct = false;
+
+    //pause timer
+    socket.adapter.rooms[socket.roomname].runningTimer = false;
+
+    //correct
+    if (
+      response.answer.toUpperCase() ==
+      socket.adapter.rooms[socket.roomname].conundrum[1]
+    ) {
+      response.correct = true;
+      updateScoreboard(socket, [{ score: 10, user: response.user }]);
+      clearInterval(socket.adapter.rooms[socket.roomname].timer);
+      resetRound(socket);
+    }
+    
+    //show the guess to everyone
+    io.sockets.in(socket.roomname).emit("guessedConundrum", response);
+  });
+
   //countdown timer
   socket.on("startTimer", () => {
     timer = 30;
-    running = socket.adapter.rooms[socket.roomname].runningTimer;
 
-    if (!running) {
+    if (!socket.adapter.rooms[socket.roomname].runningTimer) {
       socket.adapter.rooms[socket.roomname].runningTimer = true;
 
-      let countdown = setInterval(() => {
-        timer--;
-        io.sockets.in(socket.roomname).emit("timer", timer);
+      socket.adapter.rooms[socket.roomname].timer = setInterval(() => {
+        if (socket.adapter.rooms[socket.roomname].runningTimer) {
+          timer--;
+          io.sockets.in(socket.roomname).emit("timer", timer);
+        }
 
         if (timer === 0) {
-          clearInterval(countdown);
+          clearInterval(socket.adapter.rooms[socket.roomname].timer);
           timer = 30;
-          running = false;
+          socket.adapter.rooms[socket.roomname].runningTimer = false;
           checkAnswers(socket);
           resetRound(socket);
         }
       }, 1000);
     }
+  });
+
+  socket.on("resumeTimer", function () {
+    socket.adapter.rooms[socket.roomname].runningTimer = true;
   });
 });
 
@@ -370,6 +416,10 @@ const checkAnswers = (socket) => {
       socket.adapter.rooms[socket.roomname].roundNumbers,
       socket.adapter.rooms[socket.roomname].numberToReach
     );
+  } else if (
+    socket.adapter.rooms[socket.roomname].currentRound == "conundrum"
+  ) {
+    bestSolution = socket.adapter.rooms[socket.roomname].conundrum[1];
   }
 
   io.sockets.in(socket.roomname).emit("message", "Round scores");
@@ -403,7 +453,9 @@ function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].numberCount = 0;
   socket.adapter.rooms[socket.roomname].numberToReach = 0;
   socket.adapter.rooms[socket.roomname].roundNumbers = [];
+  socket.adapter.rooms[socket.roomname].conundrum = "";
   socket.adapter.rooms[socket.roomname].runningTimer = false;
+  socket.adapter.rooms[socket.roomname].timer = "";
   socket.adapter.rooms[socket.roomname].currentRound = "";
 }
 

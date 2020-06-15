@@ -21,6 +21,7 @@ $(function () {
   //initial view
   $("#startGame").prop("disabled", true);
   $("#roundHolder").hide();
+  $("#endGameScreen").hide();
 
   $(".sidebarCollapse").on("click", function () {
     $("#sidebar").toggleClass("active");
@@ -45,11 +46,13 @@ $(function () {
   function setRound(round) {
     socket.emit("startRound", round);
     currentRound = round;
+    roundLetters.letters = [];
 
     switch (round) {
       case "letters":
         $("#selectNumberButtons").hide();
         $("#selectLetterButtons").show();
+        $("#selectConundrumButtons").hide();
         $("#numberHolder").hide();
         $("#answerLetter").show();
         $("#answerNumber").hide();
@@ -57,6 +60,7 @@ $(function () {
       case "numbers":
         $("#selectNumberButtons").show();
         $("#selectLetterButtons").hide();
+        $("#selectConundrumButtons").hide();
         $("#numberHolder").show();
         $("#answerLetter").hide();
         $("#answerNumber").show();
@@ -64,8 +68,9 @@ $(function () {
       case "conundrum":
         $("#selectNumberButtons").hide();
         $("#selectLetterButtons").hide();
+        $("#selectConundrumButtons").show();
         $("#numberHolder").hide();
-        $("#answerLetter").hide();
+        $("#answerLetter").show();
         $("#answerNumber").hide();
         break;
     }
@@ -79,6 +84,7 @@ $(function () {
     $("#numberHolder").empty();
     $(".letterButton").prop("disabled", true);
     $(".numberButton").prop("disabled", true);
+    $(".conundrumButton").prop("disabled", true);
     $("#roughWork").val("");
     $("#answerLetter").val("");
     $("#answerNumber").val("");
@@ -103,6 +109,10 @@ $(function () {
 
   socket.on("scores", function (scoreboard) {
     $("#scores").empty();
+    $("#endGameScores").empty();
+
+    var pos = 1;
+
     scoreboard.forEach((user) => {
       if (user.playing) {
         $("#scores").append(
@@ -115,6 +125,10 @@ $(function () {
           $('<li class="text-muted">').text(user.name + " - " + user.score)
         );
       }
+
+      $("#endGameScores").append(
+        $("<li>").text(pos + ": " + user.name + " - " + user.score)
+      );
     });
   });
 
@@ -143,7 +157,9 @@ $(function () {
         }
         break;
       case "conundrum":
-        //TODO: wait and see. might not need anything
+        if (username == roundObj.name) {
+          $(".conundrumButton").prop("disabled", false);
+        }
         break;
     }
   });
@@ -269,6 +285,68 @@ $(function () {
     }
   });
 
+  $(".conundrumButton").click(function (e) {
+    socket.emit("getConundrum");
+  });
+
+  socket.on("selectConundrum", function (conundrum) {
+    let strToArr = conundrum.toUpperCase().split("");
+
+    strToArr.forEach((letter) => {
+      $("#letterHolder").append($("<span>").text(letter));
+      roundLetters.letters.push(letter);
+    });
+
+    //start countdown
+    Toast.fire({
+      title: "Countdown!",
+    });
+    $("#roundUpdate").html("Enter your solution...");
+
+    socket.emit("startTimer");
+    $(".conundrumButton").prop("disabled", true);
+  });
+
+  socket.on("guessedConundrum", function (response) {
+    var conundrumHTML = "";
+    conundrumHTML += '<div style="text-align:center">';
+    conundrumHTML +=
+      '<p><font color="blue">' +
+      response.answer.toUpperCase() +
+      '</font> by  <font color="blue">' +
+      response.user +
+      "</font></p> ";
+    conundrumHTML += "<h3>Result</h3>";
+    if (response.correct) {
+      conundrumHTML += '<p><font color="green">Correct</font></p>';
+    } else {
+      conundrumHTML += '<p><font color="red">Incorrect</font></p>';
+    }
+    conundrumHTML += "</div>";
+
+    Swal.fire({
+      title: "Conundrum",
+      html: conundrumHTML,
+      timer: 5000,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      showCancelButton: false,
+    }).then(() => {
+      if (response.correct) {
+        roundNumber++;
+
+        if (roundOrder[roundNumber]) {
+          setRound(roundOrder[roundNumber]);
+        } else {
+          endGame();
+        }
+      } else {
+        socket.emit("resumeTimer");
+      }
+    });
+  });
+
   $("#submitAnswer").click(function (e) {
     submitAnswer();
   });
@@ -283,6 +361,11 @@ $(function () {
     } else if (currentRound == "numbers") {
       socket.emit("submitAnswer", {
         answer: $("#answerNumber").val(),
+        user: username,
+      });
+    } else if (currentRound == "conundrum") {
+      socket.emit("checkConundrum", {
+        answer: $("#answerLetter").val(),
         user: username,
       });
     }
@@ -347,44 +430,47 @@ $(function () {
           '</font> points by <font color="blue">' +
           best.user +
           "</font></p> ";
+      } else if (currentRound == "conundrum") {
       }
     }
 
     //TODO: getting for numbers. need to add highest possible word here
     scoresHTML += '<div style="text-align:center">';
-    scoresHTML += "<h3>Best Possible Solution</h3>";
+    scoresHTML += "<h3>Solution</h3>";
     scoresHTML +=
       '<p style="white-space: pre-line;">' + bestSolution + "</p><br>";
     scoresHTML += "</div>";
 
-    scoresHTML +=
-      '<div id="tempScores" style="text-align:center;height: 200px;">';
-    scoresHTML += "<h3>Round Scores</h3>";
+    if (responses.length != 0) {
+      scoresHTML +=
+        '<div id="tempScores" style="text-align:center;height: 200px;">';
+      scoresHTML += "<h3>Round Scores</h3>";
 
-    if (currentRound == "letters") {
-      responses.forEach((response) => {
-        scoresHTML +=
-          "<span>" +
-          response.user +
-          ": " +
-          response.answer +
-          " - " +
-          response.score +
-          " points </span>";
-      });
-    } else if (currentRound == "numbers") {
-      responses.forEach((response) => {
-        scoresHTML +=
-          "<span>" +
-          response.user +
-          ": " +
-          response.answer.split("=")[response.answer.split("=").length - 1] +
-          " - " +
-          response.score +
-          " points </span>";
-      });
+      if (currentRound == "letters") {
+        responses.forEach((response) => {
+          scoresHTML +=
+            "<span>" +
+            response.user +
+            ": " +
+            response.answer +
+            " - " +
+            response.score +
+            " points </span>";
+        });
+      } else if (currentRound == "numbers") {
+        responses.forEach((response) => {
+          scoresHTML +=
+            "<span>" +
+            response.user +
+            ": " +
+            response.answer.split("=")[response.answer.split("=").length - 1] +
+            " - " +
+            response.score +
+            " points </span>";
+        });
+      }
+      scoresHTML += "</div>";
     }
-    scoresHTML += "</div>";
 
     roundNumber++;
     Swal.fire({
@@ -399,9 +485,18 @@ $(function () {
         $("#tempScores").scrollTop($("#tempScores")[0].scrollHeight);
       },
     }).then(() => {
-      setRound(roundOrder[roundNumber]);
+      if (roundOrder[roundNumber]) {
+        setRound(roundOrder[roundNumber]);
+      } else {
+        endGame();
+      }
     });
   });
+
+  function endGame() {
+    $("#roundHolder").hide();
+    $("#endGameScreen").show();
+  }
 
   //server messages
   socket.on("message", function (msg) {
