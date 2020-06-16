@@ -55,8 +55,11 @@
                 position: relative;
               "
             >
+              <button id="info" type="button" class="btn sidebarCollapse left">
+                <i class="fas fa-info-circle"></i>
+              </button>
               <h6 class="title" style="margin: auto;">
-                Room: <span class="room-title"></span>
+                <span class="room-title"></span>
               </h6>
               <button type="button" class="btn btn-info sidebarCollapse right">
                 <span>Back</span>
@@ -223,5 +226,82 @@
       <!--End Page Content -->
     </div>
     <!--End Wrapper -->
+
+    <!--Hide off screen-->
+    <div class="accordion" id="information">
+      <div class="card">
+        <div class="card-header" id="headingOne">
+          <h2 class="mb-0">
+            <button
+              class="btn btn-link btn-block text-left"
+              type="button"
+              data-toggle="collapse"
+              data-target="#collapseOne"
+              aria-expanded="true"
+              aria-controls="collapseOne"
+            >
+              Game modes
+            </button>
+          </h2>
+        </div>
+        <div
+          id="collapseOne"
+          class="collapse show"
+          aria-labelledby="headingOne"
+          data-parent="#information"
+        >
+          <div class="card-body">
+            <h3>Classic</h3>
+            <p>This classic version of countdown.</p>
+
+            <h3>Knockout</h3>
+            <p>
+              A new twist on the game where the last placed player is removed
+              from the game every 4 rounds until there is a winner.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header" id="headingThree">
+          <h2 class="mb-0">
+            <button
+              class="btn btn-link btn-block text-left collapsed"
+              type="button"
+              data-toggle="collapse"
+              data-target="#collapseThree"
+              aria-expanded="false"
+              aria-controls="collapseThree"
+            >
+              Legal & Contact
+            </button>
+          </h2>
+        </div>
+        <div
+          id="collapseThree"
+          class="collapse"
+          aria-labelledby="headingThree"
+          data-parent="#information"
+        >
+          <div class="card-body">
+            <p>This is a free and open source tool.</p>
+
+            <p>
+              I am in no way affiliated with Channel 4's game show "Countdown".
+            </p>
+
+            <p>
+              If you would like to contribute or leave feedback raise an issue
+              in github.
+            </p>
+            <p>
+              <a href="https://github.com/jamieoneill/countdown" target="_blank"
+                >https://github.com/jamieoneill/countdown</a
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

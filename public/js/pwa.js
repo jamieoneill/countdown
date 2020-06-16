@@ -23,9 +23,21 @@ $(function () {
   $("#roundHolder").hide();
   $("#endGameScreen").hide();
 
-  $(".sidebarCollapse").on("click", function () {
-    $("#sidebar").toggleClass("active");
-    $("#notification").text("");
+  $("#info").on("click", function (e) {
+    Swal.fire({
+      title: "Information",
+      html: $("#information").html(),
+      width: 800,
+      showConfirmButton: true,
+      showCancelButton: false,
+    });
+  });
+
+  $(".sidebarCollapse").on("click", function (e) {
+    if (e.currentTarget.id != "info") {
+      $("#sidebar").toggleClass("active");
+      $("#notification").text("");
+    }
   });
 
   var socket = io.connect();
@@ -628,7 +640,7 @@ $(function () {
               title: "Room Details",
               html:
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter room name</div>' +
-                '<input id="swal-roomname" class="swal2-input">' +
+                '<input id="swal-roomname" maxlength="20" class="swal2-input">' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
                 '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game availability</div>' +
@@ -690,8 +702,9 @@ $(function () {
     });
 
     //room title
-    statusElem = document.querySelector(".room-title");
-    statusElem.innerHTML = values.room;
+    roomElem = document.querySelector(".room-title");
+    roomElem.innerHTML = values.room;
+    $("#info").show();
 
     //host can start game
     if (host) {
