@@ -84,6 +84,47 @@ io.on("connection", function (socket) {
       socket.join(socket.roomname);
     }
 
+    //set the rounds
+    var roundOrder;
+    switch (values.rounds) {
+      case "5":
+        roundOrder = ["letters", "letters", "letters", "numbers", "conundrum"];
+        break;
+      case "10":
+        roundOrder = [
+          "letters",
+          "letters",
+          "numbers",
+          "letters",
+          "letters",
+          "numbers",
+          "letters",
+          "letters",
+          "numbers",
+          "conundrum",
+        ];
+        break;
+      case "15":
+        roundOrder = [
+          "letters",
+          "letters",
+          "letters",
+          "numbers",
+          "numbers",
+          "letters",
+          "letters",
+          "letters",
+          "numbers",
+          "numbers",
+          "letters",
+          "letters",
+          "numbers",
+          "numbers",
+          "conundrum",
+        ];
+        break;
+    }
+
     io.sockets.in(socket.roomname).emit("userAdded", socket.username);
     io.sockets
       .in(socket.roomname)
@@ -93,6 +134,8 @@ io.on("connection", function (socket) {
     if (!socket.adapter.rooms[socket.roomname].host) {
       socket.adapter.rooms[socket.roomname].host = socket.username;
       socket.adapter.rooms[socket.roomname].type = values.type;
+      socket.adapter.rooms[socket.roomname].rounds = roundOrder;
+      socket.adapter.rooms[socket.roomname].roundTime = values.time;
       socket.adapter.rooms[socket.roomname].open = values.open;
       socket.adapter.rooms[socket.roomname].password = values.password;
       socket.adapter.rooms[socket.roomname].started = false;
@@ -171,7 +214,10 @@ io.on("connection", function (socket) {
   //startGame
   socket.on("startGame", function () {
     socket.adapter.rooms[socket.roomname].started = true;
-    io.sockets.in(socket.roomname).emit("triggerGame");
+    io.sockets.in(socket.roomname).emit("triggerGame", {
+      order: socket.adapter.rooms[socket.roomname].rounds,
+      timer: socket.adapter.rooms[socket.roomname].roundTime,
+    });
   });
 
   socket.on("startRound", function (round) {
@@ -273,27 +319,24 @@ io.on("connection", function (socket) {
       clearInterval(socket.adapter.rooms[socket.roomname].timer);
       resetRound(socket);
     }
-    
+
     //show the guess to everyone
     io.sockets.in(socket.roomname).emit("guessedConundrum", response);
   });
 
   //countdown timer
-  socket.on("startTimer", () => {
-    timer = 30;
-
+  socket.on("startTimer", (interval) => {
     if (!socket.adapter.rooms[socket.roomname].runningTimer) {
       socket.adapter.rooms[socket.roomname].runningTimer = true;
 
       socket.adapter.rooms[socket.roomname].timer = setInterval(() => {
         if (socket.adapter.rooms[socket.roomname].runningTimer) {
-          timer--;
-          io.sockets.in(socket.roomname).emit("timer", timer);
+          interval--;
+          io.sockets.in(socket.roomname).emit("timer", interval);
         }
 
-        if (timer === 0) {
+        if (interval === 0) {
           clearInterval(socket.adapter.rooms[socket.roomname].timer);
-          timer = 30;
           socket.adapter.rooms[socket.roomname].runningTimer = false;
           checkAnswers(socket);
           resetRound(socket);
@@ -422,7 +465,6 @@ const checkAnswers = (socket) => {
     bestSolution = socket.adapter.rooms[socket.roomname].conundrum[1];
   }
 
-  io.sockets.in(socket.roomname).emit("message", "Round scores");
   io.sockets
     .in(socket.roomname)
     .emit("showAnswers", roundAnswers, bestSolution);

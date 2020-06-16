@@ -44,7 +44,8 @@ $(function () {
   var username;
   var host;
   var roomSelected = false;
-  var roundOrder = ["letters", "letters", "numbers", "numbers", "conundrum"];
+  var roundOrder;
+  var roundTimer;
   var roundNumber = 0;
   var currentRound;
   var roundLetters = { letters: [], counts: {} };
@@ -52,11 +53,12 @@ $(function () {
   //rounds
   $("#startGame").click(function (e) {
     socket.emit("startGame");
-    $("#roundHolder").show();
   });
 
   function setRound(round) {
-    socket.emit("startRound", round);
+    if (host) {
+      socket.emit("startRound", round);
+    }
     currentRound = round;
     roundLetters.letters = [];
 
@@ -144,8 +146,12 @@ $(function () {
     });
   });
 
-  socket.on("triggerGame", function () {
+  socket.on("triggerGame", function (roundVars) {
     $("#startGameScreen").hide();
+    $("#roundHolder").show();
+
+    roundOrder = roundVars.order;
+    roundTimer = roundVars.timer;
 
     socket.emit("getScores");
     setRound(roundOrder[roundNumber]);
@@ -200,7 +206,7 @@ $(function () {
       });
       $("#roundUpdate").html("Enter your word...");
 
-      socket.emit("startTimer");
+      socket.emit("startTimer", roundTimer);
       $(".letterButton").prop("disabled", true);
     }
   });
@@ -269,7 +275,7 @@ $(function () {
       });
       $("#roundUpdate").html("Enter your solution...");
 
-      socket.emit("startTimer");
+      socket.emit("startTimer", roundTimer);
       $(".numberButton").prop("disabled", true);
     }
   });
@@ -315,7 +321,7 @@ $(function () {
     });
     $("#roundUpdate").html("Enter your solution...");
 
-    socket.emit("startTimer");
+    socket.emit("startTimer", roundTimer);
     $(".conundrumButton").prop("disabled", true);
   });
 
@@ -467,7 +473,7 @@ $(function () {
             response.answer +
             " - " +
             response.score +
-            " points </span>";
+            " points </span> <br>";
         });
       } else if (currentRound == "numbers") {
         responses.forEach((response) => {
@@ -478,7 +484,7 @@ $(function () {
             response.answer.split("=")[response.answer.split("=").length - 1] +
             " - " +
             response.score +
-            " points </span>";
+            " points </span><br>";
         });
       }
       scoresHTML += "</div>";
@@ -539,7 +545,7 @@ $(function () {
 
   function getUserName() {
     Swal.fire({
-      title: "Welcome to Countdown",
+      title: "Countdown With Friends",
       input: "text",
       text: "Enter your name",
       confirmButtonText: "Next",
@@ -599,6 +605,7 @@ $(function () {
         Swal.fire({
           title: "Join Game",
           html: table_body,
+          width: 800,
           confirmButtonText: "Create a room",
           allowOutsideClick: false,
           showCancelButton: false,
@@ -639,14 +646,18 @@ $(function () {
             Swal.fire({
               title: "Room Details",
               html:
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter room name</div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Room name</div>' +
                 '<input id="swal-roomname" maxlength="20" class="swal2-input">' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
-                '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game availability</div>' +
-                '<div style="display:flex; margin:1em auto;align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Private"><span class="swal2-label">Private</span></label></div>' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Enter password</div>' +
-                '<input id="swal-password" placeholder="password only needed for private games..." class="swal2-input">',
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Private"><span class="swal2-label">Private</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Rounds</div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="5" checked="checked"><span class="swal2-label">5</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="Knockout"><span class="swal2-label">10</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="15"><span class="swal2-label">15</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Countdown timer</div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="30" checked="checked"><span class="swal2-label">30</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="Knockout"><span class="swal2-label">60</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="90"><span class="swal2-label">90</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Password</div>' +
+                '<input id="swal-password" placeholder="Only needed for private games..." class="swal2-input">',
               focusConfirm: false,
               preConfirm: () => {
                 return [
@@ -657,15 +668,27 @@ $(function () {
                   document.querySelector(
                     'input[name="swal2-radio-open"]:checked'
                   ).value,
+                  document.querySelector(
+                    'input[name="swal2-radio-rounds"]:checked'
+                  ).value,
+                  document.querySelector(
+                    'input[name="swal2-radio-time"]:checked'
+                  ).value,
                   document.getElementById("swal-password").value,
                 ];
               },
             }).then((createRoom) => {
               if (createRoom.value) {
-                results.room = createRoom.value[0];
+                if (createRoom.value[0] == "") {
+                  results.room = "Room" + Math.floor(Math.random() * 10000);
+                } else {
+                  results.room = createRoom.value[0];
+                }
                 results.type = createRoom.value[1];
                 results.open = createRoom.value[2];
-                results.password = createRoom.value[3];
+                results.rounds = createRoom.value[3];
+                results.time = createRoom.value[4];
+                results.password = createRoom.value[5];
 
                 //this user is the host
                 host = true;
