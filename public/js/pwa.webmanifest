@@ -1,5 +1,5 @@
 {
-    "name": "Countdown",
+    "name": "Countdown With Friends",
     "short_name": "Countdown",
     "description": "Countdown PWA using sockets",
     "icons": [
@@ -7,10 +7,20 @@
         "src": "/../images/splash-screen.png",
         "sizes": "512x512",
         "type": "image/png"
+      },
+      {
+        "src": "/../images/android-chrome-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/../images/android-chrome-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
       }
     ],
     "start_url": "/index.html",
     "display": "fullscreen",
-    "theme_color": "#764ABC",
-    "background_color": "#764ABC"
+    "theme_color": "#209CEE",
+    "background_color": "#209CEE"
   }
