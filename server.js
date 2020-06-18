@@ -143,6 +143,8 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].roundAnswers = [];
       socket.adapter.rooms[socket.roomname].vowels = vowels;
       socket.adapter.rooms[socket.roomname].consonants = consonants;
+      socket.adapter.rooms[socket.roomname].roundLetters = "";
+      socket.adapter.rooms[socket.roomname].roundBestWord = "";
       socket.adapter.rooms[socket.roomname].letterCount = 0;
       socket.adapter.rooms[socket.roomname].numberCount = 0;
       socket.adapter.rooms[socket.roomname].numberToReach = 0;
@@ -259,6 +261,24 @@ io.on("connection", function (socket) {
             .emit("selectLetter", selectLetter(socket, "consonant"));
           break;
       }
+    }
+
+    //solving the best word can take a few seconds so do it while players are guessing
+    if (socket.adapter.rooms[socket.roomname].letterCount == 9) {
+      var solutions = [];
+      solver.solve_letters(
+        socket.adapter.rooms[socket.roomname].roundLetters.toLowerCase(),
+        dictionary,
+        function (word, def) {
+          solutions.push([word, def]);
+        }
+      );
+
+      socket.adapter.rooms[socket.roomname].roundBestWord = solutions.reduce(
+        function (a, b) {
+          return a[0].length > b[0].length ? a : b;
+        }
+      );
     }
   });
 
@@ -385,6 +405,8 @@ const selectLetter = (socket, type) => {
       break;
   }
 
+  socket.adapter.rooms[socket.roomname].roundLetters += random;
+
   return random;
 };
 
@@ -453,9 +475,9 @@ const checkAnswers = (socket) => {
 
   //add best solutions
   if (socket.adapter.rooms[socket.roomname].currentRound == "letters") {
-    //TODO: get best word
+    bestSolution = socket.adapter.rooms[socket.roomname].roundBestWord;
   } else if (socket.adapter.rooms[socket.roomname].currentRound == "numbers") {
-    bestSolution = solver(
+    bestSolution = solver.solve_numbers(
       socket.adapter.rooms[socket.roomname].roundNumbers,
       socket.adapter.rooms[socket.roomname].numberToReach
     );
@@ -491,6 +513,8 @@ function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].roundAnswers = [];
   socket.adapter.rooms[socket.roomname].vowels = vowels;
   socket.adapter.rooms[socket.roomname].consonants = consonants;
+  socket.adapter.rooms[socket.roomname].roundLetters = "";
+  socket.adapter.rooms[socket.roomname].roundBestWord = "";
   socket.adapter.rooms[socket.roomname].letterCount = 0;
   socket.adapter.rooms[socket.roomname].numberCount = 0;
   socket.adapter.rooms[socket.roomname].numberToReach = 0;

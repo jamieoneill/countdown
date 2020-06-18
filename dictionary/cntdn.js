@@ -5,11 +5,16 @@
  * James Stanley 2014
  */
 
-module.exports = solve_numbers
+module.exports = {
+    solve_numbers,
+    solve_letters
+ }
 
-function _recurse_solve_letters(letters, node, used_letter, cb, answer) {
-    if (node[0])
-        cb(answer, node[0]);
+
+function _recurse_solve_letters(letters, dictionary, used_letter, cb, answer) {
+    if (dictionary[answer]){
+        cb(answer, dictionary[answer]);
+    }
 
     if (answer.length == letters.length)
         return;
@@ -22,16 +27,17 @@ function _recurse_solve_letters(letters, node, used_letter, cb, answer) {
         if (used_letter[i] || done[c])
             continue;
 
-        if (node[c]) {
+        if (dictionary[c]) {
             used_letter[i] = true;
             done[c] = true;
-            _recurse_solve_letters(letters, node[c], used_letter, cb, answer+c);
+            _recurse_solve_letters(letters, dictionary, used_letter, cb, answer+c);
             used_letter[i] = false;
         }
+
     }
 }
 
-function solve_letters(letters, cb) {
+function solve_letters(letters,dictionary, cb) {
     _recurse_solve_letters(letters, dictionary, {}, cb, '');
 }
 

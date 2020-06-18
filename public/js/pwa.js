@@ -455,8 +455,19 @@ $(function () {
     //TODO: getting for numbers. need to add highest possible word here
     scoresHTML += '<div style="text-align:center">';
     scoresHTML += "<h3>Solution</h3>";
-    scoresHTML +=
-      '<p style="white-space: pre-line;">' + bestSolution + "</p><br>";
+    if (currentRound == "letters") {
+      scoresHTML +=
+        '<p style="white-space: pre-line;">' +
+        bestSolution[0] +
+        "</p><br>" +
+        '<p style="white-space: pre-line;">' +
+        bestSolution[1] +
+        "</p><br>";
+    } else {
+      scoresHTML +=
+        '<p style="white-space: pre-line;">' + bestSolution + "</p><br>";
+    }
+
     scoresHTML += "</div>";
 
     if (responses.length != 0) {
