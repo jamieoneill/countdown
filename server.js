@@ -5,7 +5,7 @@ const fs = require("fs");
 const { chain, evaluate } = require("mathjs");
 const solver = require("./dictionary/cntdn.js");
 const app = express();
-const server = require("http").createServer(app);
+const server = require("https").createServer(app);
 
 var io = require("socket.io")(server);
 var port = process.env.PORT || 3000;
