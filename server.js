@@ -4,25 +4,20 @@ const path = require("path");
 const fs = require("fs");
 const { chain, evaluate } = require("mathjs");
 const solver = require("./dictionary/cntdn.js");
-
-const key = fs.readFileSync("./certs/localhost.key");
-const cert = fs.readFileSync("./certs/localhost.crt");
 const app = express();
-const server = require("http").createServer({ key: key, cert: cert }, app); //TODO: change to https
+const server = require("http").createServer(app);
 
 var io = require("socket.io")(server);
 var port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 
-/* TODO: for http to https redirect
 app.use((req, res, next) => {
   if (!req.secure) {
-    return res.redirect('https://' + req.headers.host + req.url); //TODO: set for https
+    return res.redirect("https://" + req.headers.host + req.url);
   }
   next();
-})
-*/
+});
 
 server.listen(port, "0.0.0.0", function () {
   console.log("listening on *:" + port);
