@@ -567,7 +567,12 @@ $(function () {
       },
     }).then((name) => {
       username = name.value;
-      joinRoom();
+
+      invited = checkInvitation();
+
+      if (!invited) {
+        joinRoom();
+      }
     });
   }
 
@@ -736,6 +741,13 @@ $(function () {
     //room title
     roomElem = document.querySelector(".room-title");
     roomElem.innerHTML = values.room;
+
+    //update invite links
+    $(".a2a_kit").attr(
+      "data-a2a-url",
+      "https://countdown-with-friends.herokuapp.com/?Room=" + values.room
+    );
+
     $("#info").show();
 
     //host can start game
@@ -769,4 +781,28 @@ $(function () {
       toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
   });
+
+  function checkInvitation() {
+    //IE check
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+    var invited = false;
+
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+    } else {
+      let searchParams = new URLSearchParams(window.location.search);
+      let inviteRoom = searchParams.get("Room");
+
+      var joining = {};
+      // user was invited to room
+      if (inviteRoom) {
+        invited = true;
+        joining.username = username;
+        joining.room = inviteRoom;
+        addUser(joining);
+      }
+    }
+
+    return invited;
+  }
 }); //end main

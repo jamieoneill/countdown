@@ -31,7 +31,7 @@ body {
   position: absolute;
   display: none;
   border-radius: 0rem;
-  height: 44px;
+  height: 45px;
 }
 .sidebarCollapse:focus {
   outline: none;
