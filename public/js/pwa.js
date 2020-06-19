@@ -696,7 +696,7 @@ $(function () {
                 if (createRoom.value[0] == "") {
                   results.room = "Room" + Math.floor(Math.random() * 10000);
                 } else {
-                  results.room = createRoom.value[0];
+                  results.room = createRoom.value[0].replace(/ /g, "-");
                 }
                 results.type = createRoom.value[1];
                 results.open = createRoom.value[2];
