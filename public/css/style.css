@@ -1,6 +1,10 @@
+html,
 body {
   overflow-x: hidden;
   overflow-y: hidden;
+}
+body {
+  position: relative;
   font: 13px Helvetica, Arial;
   background: #fafafa;
 }
@@ -46,6 +50,7 @@ body {
 .sidebarCollapse .badge {
   position: absolute;
   top: 30px;
+  left: 70px;
   padding: 4px 6px;
   border-radius: 50%;
   background-color: #f39c12;
@@ -154,7 +159,7 @@ a[data-toggle="collapse"] {
   margin-bottom: 5px;
 }
 
-#endGameScores li{
+#endGameScores li {
   font-size: 20px;
 }
 

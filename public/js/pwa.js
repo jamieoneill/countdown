@@ -20,8 +20,6 @@ $(function () {
 
   //initial view
   $("#startGame").prop("disabled", true);
-  $("#roundHolder").hide();
-  $("#endGameScreen").hide();
 
   $("#info").on("click", function (e) {
     Swal.fire({

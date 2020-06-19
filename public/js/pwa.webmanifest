@@ -1,6 +1,6 @@
 {
     "name": "Countdown With Friends",
-    "short_name": "Countdown",
+    "short_name": "Countdown With Friends",
     "description": "Countdown PWA using sockets",
     "icons": [
       {
