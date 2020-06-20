@@ -3,14 +3,15 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 }
-html{
-  min-height: -webkit-fill-available;
-  height: 100vh;
+html {
+  height: -webkit-fill-available;
 }
 body {
   position: relative;
   font: 13px Helvetica, Arial;
   background: #fafafa;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
 .wrapper {
