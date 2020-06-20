@@ -19,6 +19,14 @@ $(function () {
   /* END PWA FUNCTIONS */
 
   //initial view
+  let vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty("--vh", `${vh}px`);
+  // update window size
+  window.addEventListener("resize", () => {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  });
+
   $("#startGame").prop("disabled", true);
 
   $("#info").on("click", function (e) {
@@ -533,7 +541,10 @@ $(function () {
     } else {
       $("#messages").append($("<li>").text(msg));
     }
-    $("#messageHolder").animate({scrollTop:$("#messageHolder")[0].scrollHeight}, 1000);
+    $("#messageHolder").animate(
+      { scrollTop: $("#messageHolder")[0].scrollHeight },
+      1000
+    );
 
     currentNotes = $("#notification").text();
     if (currentNotes) {
