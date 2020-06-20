@@ -533,7 +533,7 @@ $(function () {
     } else {
       $("#messages").append($("<li>").text(msg));
     }
-    $("#messages").scrollTop($("#messages")[0].scrollHeight);
+    $("#messageHolder").animate({scrollTop:$("#messageHolder")[0].scrollHeight}, 1000);
 
     currentNotes = $("#notification").text();
     if (currentNotes) {

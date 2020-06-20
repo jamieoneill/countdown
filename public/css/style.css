@@ -3,6 +3,10 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 }
+html{
+  min-height: -webkit-fill-available;
+  height: 100vh;
+}
 body {
   position: relative;
   font: 13px Helvetica, Arial;

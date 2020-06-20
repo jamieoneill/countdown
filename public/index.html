@@ -57,49 +57,50 @@
     <div class="wrapper">
       <!-- Sidebar -->
       <nav id="sidebar">
-        <div class="card">
-          <article class="card-group-item" style="height: 50vh;">
-            <header
-              class="card-header"
-              style="
-                display: flex;
-                justify-content: space-between;
-                position: relative;
-              "
-            >
-              <button id="info" type="button" class="btn sidebarCollapse left">
-                <i class="fas fa-info-circle"></i>
-              </button>
-              <h6 class="title" style="margin: auto;">
-                <span class="room-title"></span>
-              </h6>
-              <button type="button" class="btn btn-info sidebarCollapse right">
-                <span>Back</span>
-                <i class="fas fa-arrow-right"></i>
-              </button>
-            </header>
-            <div class="filter-content">
-              <div class="card-body-custom">
-                <ul id="scores"></ul>
-              </div>
-            </div>
-          </article>
+        <div class="card" style="height: 50vh;">
+          <div
+            class="card-header"
+            style="
+              display: flex;
+              justify-content: space-between;
+              position: relative;
+            "
+          >
+            <button id="info" type="button" class="btn sidebarCollapse left">
+              <i class="fas fa-info-circle"></i>
+            </button>
+            <h6 class="title" style="margin: auto;">
+              <span class="room-title"></span>
+            </h6>
+            <button type="button" class="btn btn-info sidebarCollapse right">
+              <span>Back</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <div class="card-body-custom">
+            <ul id="scores"></ul>
+          </div>
+        </div>
 
-          <article class="card-group-item" style="height: 50vh;">
-            <header class="card-header">
-              <h6 class="title">Messages</h6>
-            </header>
-            <div class="filter-content">
-              <div class="card-body-custom">
-                <!-- need to make scroll-->
-                <ul id="messages" style="height: 250px; overflow: auto;"></ul>
-              </div>
+        <div
+          class="d-flex flex-column overflow-hidden"
+          style="height: 50vh; background: white;"
+        >
+          <nav class="navbar navbar-light bg-light navbar-expand">
+            <h6 class="title">Messages</h6>
+          </nav>
+          <div class="flex-column flex-grow-1 overflow-hidden">
+            <div id="messageHolder" class="mh-100 overflow-auto">
+              <ul
+                class="nav flex-column"
+                id="messages"
+                style="overflow: auto;"
+              ></ul>
             </div>
-            <div
-              class="card-footer"
-              style="position: absolute; bottom: 0; width: 100%;"
-            >
-              <div class="col-md-12">
+          </div>
+          <div class="row flex-shrink-0 bg-light">
+            <div class="col-12 py-1">
+              <div>
                 <input
                   type="text"
                   class="form-control"
@@ -108,7 +109,7 @@
                 />
               </div>
             </div>
-          </article>
+          </div>
         </div>
       </nav>
 
@@ -265,7 +266,7 @@
     <!--End Wrapper -->
 
     <!--Hide off screen-->
-    <div class="accordion" id="information" style="display:none">
+    <div class="accordion" id="information" style="display: none;">
       <div class="card">
         <div class="card-header" id="headingOne">
           <h2 class="mb-0">
