@@ -24,7 +24,7 @@ $(function () {
   $("#info").on("click", function (e) {
     Swal.fire({
       title: "Information",
-      html: $("#information").html(),
+      html: $("#information").html().replace("display:none", ""),
       width: 800,
       showConfirmButton: true,
       showCancelButton: false,
