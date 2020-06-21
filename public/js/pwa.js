@@ -46,7 +46,7 @@ $(function () {
   var roundTimer;
   var roundNumber = 0;
   var currentRound;
-  var roundLetters = { letters: [], counts: {} };
+  var roundLetters = { letters: [], counts: {}, types: [] };
 
   //rounds
   $("#startGame").click(function (e) {
@@ -59,6 +59,7 @@ $(function () {
     }
     currentRound = round;
     roundLetters.letters = [];
+    roundLetters.types = [];
 
     switch (round) {
       case "letters":
@@ -182,6 +183,23 @@ $(function () {
 
   //request letter
   $(".letterButton").click(function (e) {
+    roundLetters.types.push(e.target.id);
+
+    var numOfVowel = roundLetters.types.filter(function (x) {
+      return x === "vowel";
+    }).length;
+    var numOfConsonant = roundLetters.types.filter(function (x) {
+      return x === "consonant";
+    }).length;
+
+    //must have at least 3 vowels and 4 consonants
+    if (numOfVowel == 5) {
+      $("#vowel").prop("disabled", true);
+    }
+    if (numOfConsonant == 6) {
+      $("#consonant").prop("disabled", true);
+    }
+
     socket.emit("selectLetter", e.target.id);
   });
 
@@ -767,7 +785,7 @@ $(function () {
       .fire(
         "Game in progress",
         "The game has already started in room: " + roomname,
-        "warning",
+        "warning"
       )
       .then(() => {
         roomSelected = false;

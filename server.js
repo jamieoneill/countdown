@@ -420,7 +420,11 @@ const checkAnswers = (socket) => {
       var correctWord = dictionary[response.answer];
       //set score
       if (correctWord) {
-        response.score = response.answer.length;
+        if (response.answer.length == 9) {
+          response.score = 18;
+        } else {
+          response.score = response.answer.length;
+        }
         response.definition = correctWord;
       } else {
         response.score = 0;
@@ -460,6 +464,7 @@ const checkAnswers = (socket) => {
         );
 
         // 10 for reaching it exactly, 7 for being 1–5 away, 5 for being 6–10 away.
+        // TODO : "Only the contestant whose result is closer to the target number scores points"... not sure to implement this as scores would be very low for multiplayer games
         if (difference == 0) {
           response.score = 10;
         } else if (difference > 0 && difference < 6) {
@@ -511,8 +516,6 @@ function updateScoreboard(socket, answers) {
 
 function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].roundAnswers = [];
-  socket.adapter.rooms[socket.roomname].vowels = vowels;
-  socket.adapter.rooms[socket.roomname].consonants = consonants;
   socket.adapter.rooms[socket.roomname].roundLetters = "";
   socket.adapter.rooms[socket.roomname].roundBestWord = "";
   socket.adapter.rooms[socket.roomname].letterCount = 0;
