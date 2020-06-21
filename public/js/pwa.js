@@ -694,6 +694,13 @@ $(function () {
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Password</div>' +
                 '<input id="swal-password" placeholder="Only needed for private games..." class="swal2-input">',
               focusConfirm: false,
+              onBeforeOpen: () => {
+                $("#swal-roomname").keyup(function (e) {
+                  if (e.keyCode === 13) {
+                    $('input[name="swal2-radio-type"]')[0].focus();
+                  }
+                });
+              },
               preConfirm: () => {
                 return [
                   document.getElementById("swal-roomname").value,
@@ -779,7 +786,7 @@ $(function () {
     }
   }
 
-  //gae in progress find another room
+  //game in progress find another room
   socket.on("gameInProgress", function (roomname) {
     swal
       .fire(
