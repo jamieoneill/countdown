@@ -761,12 +761,27 @@ $(function () {
     }
   }
 
+  //gae in progress find another room
+  socket.on("gameInProgress", function (roomname) {
+    swal
+      .fire(
+        "Game in progress",
+        "The game has already started in room: " + roomname,
+        "warning",
+      )
+      .then(() => {
+        roomSelected = false;
+        joinRoom();
+      });
+  });
+
   //wrong password find another room
   socket.on("wrongPassword", function (roomname) {
     swal
       .fire(
         "Wrong password",
-        "You did not enter the correct password for room: " + roomname
+        "You did not enter the correct password for room: " + roomname,
+        "warning"
       )
       .then(() => {
         roomSelected = false;

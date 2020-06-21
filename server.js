@@ -54,9 +54,14 @@ io.on("connection", function (socket) {
     socket.username = values.username;
     socket.roomname = values.room;
 
-    //check for password
-    if (io.nsps["/"].adapter.rooms[socket.roomname]) {
-      if (io.nsps["/"].adapter.rooms[socket.roomname].password != "") {
+    if (socket.adapter.rooms[socket.roomname]) {
+      //check if game has started
+      if (socket.adapter.rooms[socket.roomname].started) {
+        io.sockets.connected[socket.id].emit("gameInProgress", socket.roomname);
+        return;
+      }
+      //check for password
+      if (socket.adapter.rooms[socket.roomname].password != "") {
         if (
           socket.adapter.rooms[socket.roomname].password === values.password
         ) {
@@ -196,7 +201,7 @@ io.on("connection", function (socket) {
 
   //rooms
   socket.on("getRooms", function () {
-    rooms = socket.adapter.rooms;
+    var rooms = JSON.parse(JSON.stringify(socket.adapter.rooms));
 
     //don't include rooms with no host or have already started
     for (const room in rooms) {
