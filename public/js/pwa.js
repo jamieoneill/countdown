@@ -115,7 +115,6 @@ $(function () {
   }
 
   function clearFields() {
-    console.log("clearing")
     $("#timer").text("30");
     $("#letterHolder").empty();
     $("#numberHolder").empty();
@@ -184,8 +183,6 @@ $(function () {
     $("#roundUpdate").html(
       roundObj.name + " is selecting " + roundObj.round + "..."
     );
-
-    console.log("setting player " + roundObj.name)
 
     //only this user can select
     if (username == roundObj.name) {
@@ -811,6 +808,18 @@ $(function () {
   //user has been knocked out of the game
   socket.on("knockedOut", function () {
     stillPlaying = false;
+  });
+
+  //selected as host
+  socket.on("newHost", function () {
+    host = true;
+
+    Toast.fire({
+      title: "You have been assigned as the host",
+    });
+
+    $("#startGame").html("Start Game");
+    $("#startGame").prop("disabled", false);
   });
 
   //game in progress find another room

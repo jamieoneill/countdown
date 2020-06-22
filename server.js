@@ -86,7 +86,7 @@ io.on("connection", function (socket) {
 
     //set the rounds
     var roundOrder;
-    var removeAtRound;
+    var removeAt;
     switch (values.rounds) {
       case "5":
         roundOrder = ["letters", "letters", "letters", "numbers", "conundrum"];
@@ -199,6 +199,13 @@ io.on("connection", function (socket) {
 
       objIndex = scores.findIndex((obj) => obj.id == socket.id);
       scores[objIndex].playing = false;
+
+      if (socket.adapter.rooms[socket.roomname].host == socket.username) {
+        var player = getPlayersInGame(socket);
+        socket.adapter.rooms[socket.roomname].host = player[0].name;
+
+        io.sockets.connected[player[0].id].emit("newHost");
+      }
     }
 
     io.sockets.in(socket.roomname).emit("removeUser", socket.username);
@@ -235,12 +242,7 @@ io.on("connection", function (socket) {
     socket.adapter.rooms[socket.roomname].currentRound.number++;
 
     //select random player to choose
-    var players = socket.adapter.rooms[socket.roomname].scoreBoard.filter(
-      (obj) => {
-        return obj.playing === true;
-      }
-    );
-
+    var players = getPlayersInGame(socket);
     randomPlayer = players[Math.floor(Math.random() * players.length)];
 
     //host controls the conundrum
@@ -385,11 +387,7 @@ io.on("connection", function (socket) {
               var numberOfRounds =
                 socket.adapter.rooms[socket.roomname].rounds.length;
 
-              var playersStillInGame = socket.adapter.rooms[
-                socket.roomname
-              ].scoreBoard.filter((obj) => {
-                return obj.playing === true;
-              });
+              var playersStillInGame = getPlayersInGame(socket);
 
               playersStillInGame.sort(function (a, b) {
                 return a.score - b.score;
@@ -563,6 +561,16 @@ function updateScoreboard(socket, answers) {
   });
 
   io.sockets.in(socket.roomname).emit("scores", scoreBoard.reverse());
+}
+
+function getPlayersInGame(socket) {
+  var playersStillInGame = socket.adapter.rooms[
+    socket.roomname
+  ].scoreBoard.filter((obj) => {
+    return obj.playing === true;
+  });
+
+  return playersStillInGame;
 }
 
 function resetRound(socket) {
