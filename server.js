@@ -193,25 +193,14 @@ io.on("connection", function (socket) {
 
   //remove the user
   socket.on("disconnect", () => {
-    //set to not playing if the room is still open
-    if (socket.adapter.rooms[socket.roomname]) {
-      scores = socket.adapter.rooms[socket.roomname].scoreBoard;
+    removeUserFromRoom(socket);
+  });
 
-      objIndex = scores.findIndex((obj) => obj.id == socket.id);
-      scores[objIndex].playing = false;
+  //leave room
+  socket.on("leaveRoom", function () {
+    socket.leave(socket.roomname);
 
-      if (socket.adapter.rooms[socket.roomname].host == socket.username) {
-        var player = getPlayersInGame(socket);
-        socket.adapter.rooms[socket.roomname].host = player[0].name;
-
-        io.sockets.connected[player[0].id].emit("newHost");
-      }
-    }
-
-    io.sockets.in(socket.roomname).emit("removeUser", socket.username);
-    io.sockets
-      .in(socket.roomname)
-      .emit("message", socket.username + " left the room");
+    removeUserFromRoom(socket);
   });
 
   //rooms
@@ -589,4 +578,26 @@ function resetRound(socket) {
 
 function diff(a, b) {
   return Math.abs(a - b);
+}
+
+function removeUserFromRoom(socket) {
+  //set to not playing if the room is still open
+  if (socket.adapter.rooms[socket.roomname]) {
+    scores = socket.adapter.rooms[socket.roomname].scoreBoard;
+
+    objIndex = scores.findIndex((obj) => obj.id == socket.id);
+    scores[objIndex].playing = false;
+
+    if (socket.adapter.rooms[socket.roomname].host == socket.username) {
+      var player = getPlayersInGame(socket);
+      socket.adapter.rooms[socket.roomname].host = player[0].name;
+
+      io.sockets.connected[player[0].id].emit("newHost");
+    }
+  }
+
+  io.sockets.in(socket.roomname).emit("removeUser", socket.username);
+  io.sockets
+    .in(socket.roomname)
+    .emit("message", socket.username + " left the room");
 }

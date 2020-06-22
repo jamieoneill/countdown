@@ -21,7 +21,7 @@ $(function () {
   //initial view
   $("#startGame").prop("disabled", true);
 
-  $("#info").on("click", function (e) {
+  $("#info").on("click", function () {
     Swal.fire({
       title: "Information",
       html: $("#information").html().replace("display:none", ""),
@@ -31,8 +31,31 @@ $(function () {
     });
   });
 
+  $("#exit").on("click", function () {
+    Swal.fire({
+      title: "Exit Room",
+      html: "Are you sure you want to leave the game?",
+      icon: "question",
+      showCancelButton: true,
+    }).then((result) => {
+      if (result.value) {
+        //disconnect from room
+        socket.emit("leaveRoom");
+
+        //clear old values
+        $("#scores").empty();
+        $("#messages").empty();
+        $("#users").empty();
+        document.querySelector(".room-title").innerHTML = "";
+
+        roomSelected = false;
+        joinRoom();
+      }
+    });
+  });
+
   $(".sidebarCollapse").on("click", function (e) {
-    if (e.currentTarget.id != "info") {
+    if (e.currentTarget.id != "info" && e.currentTarget.id != "exit") {
       $("#sidebar").toggleClass("active");
       $("#notification").text("");
     }
@@ -786,8 +809,7 @@ $(function () {
     });
 
     //room title
-    roomElem = document.querySelector(".room-title");
-    roomElem.innerHTML = values.room;
+    document.querySelector(".room-title").innerHTML = values.room;
 
     //update invite links
     $(".a2a_kit").attr(
@@ -796,6 +818,7 @@ $(function () {
     );
 
     $("#info").show();
+    $("#exit").show();
 
     //host can start game
     if (host) {
