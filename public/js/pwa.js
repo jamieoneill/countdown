@@ -41,6 +41,8 @@ $(function () {
   var socket = io.connect();
   var username;
   var host;
+  var stillPlaying = true;
+  var shownKnockOut = false;
   var roomSelected = false;
   var roundOrder;
   var roundTimer;
@@ -54,9 +56,6 @@ $(function () {
   });
 
   function setRound(round) {
-    if (host) {
-      socket.emit("startRound", round);
-    }
     currentRound = round;
     roundLetters.letters = [];
     roundLetters.types = [];
@@ -89,9 +88,34 @@ $(function () {
     }
 
     clearFields();
+
+    if (!stillPlaying) {
+      if (!shownKnockOut) {
+        var text = "";
+        if (host) {
+          text =
+            "You have been knocked out of the game. You are acting as the host of this game. DO NOT CLOSE OR REFRESH THE PAGE to allow other players to keep playing.";
+        } else {
+          text =
+            "You have been knocked out of the game. You can still watch the game without playing or refresh the page to join a new game.";
+        }
+
+        shownKnockOut = true;
+        swal.fire("Knocked Out!", text, "warning");
+      }
+
+      $("#answerLetter").prop("disabled", true);
+      $("#answerNumber").prop("disabled", true);
+      $("#submitAnswer").prop("disabled", true);
+    }
+
+    if (host) {
+      socket.emit("startRound", round);
+    }
   }
 
   function clearFields() {
+    console.log("clearing")
     $("#timer").text("30");
     $("#letterHolder").empty();
     $("#numberHolder").empty();
@@ -161,23 +185,21 @@ $(function () {
       roundObj.name + " is selecting " + roundObj.round + "..."
     );
 
+    console.log("setting player " + roundObj.name)
+
     //only this user can select
-    switch (roundObj.round) {
-      case "letters":
-        if (username == roundObj.name) {
+    if (username == roundObj.name) {
+      switch (roundObj.round) {
+        case "letters":
           $(".letterButton").prop("disabled", false);
-        }
-        break;
-      case "numbers":
-        if (username == roundObj.name) {
+          break;
+        case "numbers":
           $(".numberButton").prop("disabled", false);
-        }
-        break;
-      case "conundrum":
-        if (username == roundObj.name) {
+          break;
+        case "conundrum":
           $(".conundrumButton").prop("disabled", false);
-        }
-        break;
+          break;
+      }
     }
   });
 
@@ -785,6 +807,11 @@ $(function () {
       $("#startGame").html("Waiting for host to start the game...");
     }
   }
+
+  //user has been knocked out of the game
+  socket.on("knockedOut", function () {
+    stillPlaying = false;
+  });
 
   //game in progress find another room
   socket.on("gameInProgress", function (roomname) {

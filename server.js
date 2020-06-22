@@ -86,9 +86,11 @@ io.on("connection", function (socket) {
 
     //set the rounds
     var roundOrder;
+    var removeAtRound;
     switch (values.rounds) {
       case "5":
         roundOrder = ["letters", "letters", "letters", "numbers", "conundrum"];
+        removeAt = 2;
         break;
       case "10":
         roundOrder = [
@@ -103,6 +105,7 @@ io.on("connection", function (socket) {
           "numbers",
           "conundrum",
         ];
+        removeAt = 3;
         break;
       case "15":
         roundOrder = [
@@ -122,6 +125,7 @@ io.on("connection", function (socket) {
           "numbers",
           "conundrum",
         ];
+        removeAt = 4;
         break;
     }
 
@@ -134,6 +138,7 @@ io.on("connection", function (socket) {
     if (!socket.adapter.rooms[socket.roomname].host) {
       socket.adapter.rooms[socket.roomname].host = socket.username;
       socket.adapter.rooms[socket.roomname].type = values.type;
+      socket.adapter.rooms[socket.roomname].removeAtRound = removeAt;
       socket.adapter.rooms[socket.roomname].rounds = roundOrder;
       socket.adapter.rooms[socket.roomname].roundTime = values.time;
       socket.adapter.rooms[socket.roomname].open = values.open;
@@ -152,7 +157,10 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].conundrum = "";
       socket.adapter.rooms[socket.roomname].runningTimer = false;
       socket.adapter.rooms[socket.roomname].timer = "";
-      socket.adapter.rooms[socket.roomname].currentRound = "";
+      socket.adapter.rooms[socket.roomname].currentRound = {
+        name: "",
+        number: 0,
+      };
     }
 
     socket.adapter.rooms[socket.roomname].scoreBoard.push({
@@ -223,7 +231,8 @@ io.on("connection", function (socket) {
   });
 
   socket.on("startRound", function (round) {
-    socket.adapter.rooms[socket.roomname].currentRound = round;
+    socket.adapter.rooms[socket.roomname].currentRound.name = round;
+    socket.adapter.rooms[socket.roomname].currentRound.number++;
 
     //select random player to choose
     var players = socket.adapter.rooms[socket.roomname].scoreBoard.filter(
@@ -235,7 +244,9 @@ io.on("connection", function (socket) {
     randomPlayer = players[Math.floor(Math.random() * players.length)];
 
     //host controls the conundrum
-    if (socket.adapter.rooms[socket.roomname].currentRound == "conundrum") {
+    if (
+      socket.adapter.rooms[socket.roomname].currentRound.name == "conundrum"
+    ) {
       randomPlayer.name = socket.adapter.rooms[socket.roomname].host;
     }
 
@@ -359,6 +370,46 @@ io.on("connection", function (socket) {
           clearInterval(socket.adapter.rooms[socket.roomname].timer);
           socket.adapter.rooms[socket.roomname].runningTimer = false;
           checkAnswers(socket);
+
+          if (socket.adapter.rooms[socket.roomname].type == "Knockout") {
+            var removeAtRound =
+              socket.adapter.rooms[socket.roomname].removeAtRound;
+            var removeNow =
+              socket.adapter.rooms[socket.roomname].currentRound.number %
+              removeAtRound;
+
+            //knockout players at removeAtRound
+            if (removeNow == 0) {
+              var noOfPlayers =
+                socket.adapter.rooms[socket.roomname].scoreBoard.length;
+              var numberOfRounds =
+                socket.adapter.rooms[socket.roomname].rounds.length;
+
+              var playersStillInGame = socket.adapter.rooms[
+                socket.roomname
+              ].scoreBoard.filter((obj) => {
+                return obj.playing === true;
+              });
+
+              playersStillInGame.sort(function (a, b) {
+                return a.score - b.score;
+              });
+
+              playersToRemove = Math.floor(
+                Math.floor(noOfPlayers / numberOfRounds) * removeAtRound
+              );
+
+              for (var i = 0; i < playersToRemove; i++) {
+                playersStillInGame[i].playing = false;
+
+                //tell the player they have been knocked out
+                io.sockets.connected[playersStillInGame[i].id].emit(
+                  "knockedOut"
+                );
+              }
+            }
+          }
+
           resetRound(socket);
         }
       }, 1000);
@@ -415,7 +466,7 @@ const checkAnswers = (socket) => {
   var bestSolution = "";
 
   roundAnswers.forEach((response) => {
-    if (socket.adapter.rooms[socket.roomname].currentRound == "letters") {
+    if (socket.adapter.rooms[socket.roomname].currentRound.name == "letters") {
       //check response.answer if is correct word
       var correctWord = dictionary[response.answer];
       //set score
@@ -431,7 +482,7 @@ const checkAnswers = (socket) => {
         response.definition = "";
       }
     } else if (
-      socket.adapter.rooms[socket.roomname].currentRound == "numbers"
+      socket.adapter.rooms[socket.roomname].currentRound.name == "numbers"
     ) {
       var hasError = false;
       var sum;
@@ -479,7 +530,7 @@ const checkAnswers = (socket) => {
   });
 
   //add best solutions
-  if (socket.adapter.rooms[socket.roomname].currentRound == "letters") {
+  if (socket.adapter.rooms[socket.roomname].currentRound.name == "letters") {
     bestSolution = socket.adapter.rooms[socket.roomname].roundBestWord;
   } else if (socket.adapter.rooms[socket.roomname].currentRound == "numbers") {
     bestSolution = solver.solve_numbers(
@@ -487,7 +538,7 @@ const checkAnswers = (socket) => {
       socket.adapter.rooms[socket.roomname].numberToReach
     );
   } else if (
-    socket.adapter.rooms[socket.roomname].currentRound == "conundrum"
+    socket.adapter.rooms[socket.roomname].currentRound.name == "conundrum"
   ) {
     bestSolution = socket.adapter.rooms[socket.roomname].conundrum[1];
   }
@@ -525,7 +576,7 @@ function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].conundrum = "";
   socket.adapter.rooms[socket.roomname].runningTimer = false;
   socket.adapter.rooms[socket.roomname].timer = "";
-  socket.adapter.rooms[socket.roomname].currentRound = "";
+  socket.adapter.rooms[socket.roomname].currentRound.name = "";
 }
 
 function diff(a, b) {
