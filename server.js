@@ -206,7 +206,7 @@ io.on("connection", function (socket) {
 
   //rooms
   socket.on("getRooms", function () {
-    var rooms = JSON.parse(JSON.stringify(socket.adapter.rooms));
+    var rooms = Object.assign({}, socket.adapter.rooms);
 
     //don't include rooms with no host or have already started
     for (const room in rooms) {
