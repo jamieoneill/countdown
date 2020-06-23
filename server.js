@@ -146,6 +146,7 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].started = false;
       socket.adapter.rooms[socket.roomname].scoreBoard = [];
       socket.adapter.rooms[socket.roomname].roundAnswers = [];
+      socket.adapter.rooms[socket.roomname].selectingPlayer = "";
       socket.adapter.rooms[socket.roomname].vowels = vowels;
       socket.adapter.rooms[socket.roomname].consonants = consonants;
       socket.adapter.rooms[socket.roomname].roundLetters = "";
@@ -240,6 +241,8 @@ io.on("connection", function (socket) {
     ) {
       randomPlayer.name = socket.adapter.rooms[socket.roomname].host;
     }
+
+    socket.adapter.rooms[socket.roomname].selectingPlayer = randomPlayer.name;
 
     io.sockets
       .in(socket.roomname)
@@ -352,52 +355,56 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].runningTimer = true;
 
       socket.adapter.rooms[socket.roomname].timer = setInterval(() => {
-        if (socket.adapter.rooms[socket.roomname].runningTimer) {
-          interval--;
-          io.sockets.in(socket.roomname).emit("timer", interval);
-        }
-
-        if (interval === 0) {
-          clearInterval(socket.adapter.rooms[socket.roomname].timer);
-          socket.adapter.rooms[socket.roomname].runningTimer = false;
-          checkAnswers(socket);
-
-          if (socket.adapter.rooms[socket.roomname].type == "Knockout") {
-            var removeAtRound =
-              socket.adapter.rooms[socket.roomname].removeAtRound;
-            var removeNow =
-              socket.adapter.rooms[socket.roomname].currentRound.number %
-              removeAtRound;
-
-            //knockout players at removeAtRound
-            if (removeNow == 0) {
-              var noOfPlayers =
-                socket.adapter.rooms[socket.roomname].scoreBoard.length;
-              var numberOfRounds =
-                socket.adapter.rooms[socket.roomname].rounds.length;
-
-              var playersStillInGame = getPlayersInGame(socket);
-
-              playersStillInGame.sort(function (a, b) {
-                return a.score - b.score;
-              });
-
-              playersToRemove = Math.floor(
-                Math.floor(noOfPlayers / numberOfRounds) * removeAtRound
-              );
-
-              for (var i = 0; i < playersToRemove; i++) {
-                playersStillInGame[i].playing = false;
-
-                //tell the player they have been knocked out
-                io.sockets.connected[playersStillInGame[i].id].emit(
-                  "knockedOut"
-                );
-              }
-            }
+        try {
+          if (socket.adapter.rooms[socket.roomname].runningTimer) {
+            interval--;
+            io.sockets.in(socket.roomname).emit("timer", interval);
           }
 
-          resetRound(socket);
+          if (interval === 0) {
+            clearInterval(socket.adapter.rooms[socket.roomname].timer);
+            socket.adapter.rooms[socket.roomname].runningTimer = false;
+            checkAnswers(socket);
+
+            if (socket.adapter.rooms[socket.roomname].type == "Knockout") {
+              var removeAtRound =
+                socket.adapter.rooms[socket.roomname].removeAtRound;
+              var removeNow =
+                socket.adapter.rooms[socket.roomname].currentRound.number %
+                removeAtRound;
+
+              //knockout players at removeAtRound
+              if (removeNow == 0) {
+                var noOfPlayers =
+                  socket.adapter.rooms[socket.roomname].scoreBoard.length;
+                var numberOfRounds =
+                  socket.adapter.rooms[socket.roomname].rounds.length;
+
+                var playersStillInGame = getPlayersInGame(socket);
+
+                playersStillInGame.sort(function (a, b) {
+                  return a.score - b.score;
+                });
+
+                playersToRemove = Math.floor(
+                  Math.floor(noOfPlayers / numberOfRounds) * removeAtRound
+                );
+
+                for (var i = 0; i < playersToRemove; i++) {
+                  playersStillInGame[i].playing = false;
+
+                  //tell the player they have been knocked out
+                  io.sockets.connected[playersStillInGame[i].id].emit(
+                    "knockedOut"
+                  );
+                }
+              }
+            }
+
+            resetRound(socket);
+          }
+        } catch {
+          //Room must be closed
         }
       }, 1000);
     }
@@ -533,7 +540,6 @@ const checkAnswers = (socket) => {
   io.sockets
     .in(socket.roomname)
     .emit("showAnswers", roundAnswers, bestSolution);
-  socket.adapter.rooms[socket.roomname].roundAnswers = [];
   updateScoreboard(socket, roundAnswers);
 };
 
@@ -541,7 +547,7 @@ function updateScoreboard(socket, answers) {
   scoreBoard = socket.adapter.rooms[socket.roomname].scoreBoard;
 
   answers.forEach((person) => {
-    objIndex = scoreBoard.findIndex((obj) => obj.user == person.name);
+    objIndex = scoreBoard.findIndex((obj) => obj.name == person.user);
     scoreBoard[objIndex].score = scoreBoard[objIndex].score + person.score;
   });
 
@@ -588,11 +594,27 @@ function removeUserFromRoom(socket) {
     objIndex = scores.findIndex((obj) => obj.id == socket.id);
     scores[objIndex].playing = false;
 
+    //set new host
     if (socket.adapter.rooms[socket.roomname].host == socket.username) {
       var player = getPlayersInGame(socket);
       socket.adapter.rooms[socket.roomname].host = player[0].name;
 
       io.sockets.connected[player[0].id].emit("newHost");
+    }
+
+    //set new selecting player
+    if (
+      socket.adapter.rooms[socket.roomname].selectingPlayer == socket.username
+    ) {
+      var player = getPlayersInGame(socket);
+      socket.adapter.rooms[socket.roomname].host = player[0].name;
+
+      socket.adapter.rooms[socket.roomname].selectingPlayer = player[0].name;
+
+      io.sockets.in(socket.roomname).emit("playersRound", {
+        round: socket.adapter.rooms[socket.roomname].currentRound.name,
+        name: player[0].name,
+      });
     }
   }
 

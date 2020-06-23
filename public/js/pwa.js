@@ -2,19 +2,7 @@ $(function () {
   /* PWA FUNCTIONS */
   //load service workers for PWA
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then((registration) => {
-        //todo: remove logging when on server
-        console.log(
-          "ServiceWorker registration successful with scope: ",
-          registration.scope
-        );
-      })
-      .catch((err) => {
-        // registration failed
-        console.log("ServiceWorker registration failed: ", err);
-      });
+    navigator.serviceWorker.register("/service-worker.js");
   }
   /* END PWA FUNCTIONS */
 
@@ -174,18 +162,20 @@ $(function () {
 
     scoreboard.forEach((user) => {
       if (user.playing) {
-        $("#scores").append(
+        $("#scores").prepend(
           $('<li style="background: #eee;">').text(
             user.name + " - " + user.score
           )
         );
       } else {
-        $("#scores").append(
-          $('<li class="text-muted">').text(user.name + " - " + user.score)
+        $("#scores").prepend(
+          $('<li style="background: #ff5757">').text(
+            user.name + " - " + user.score
+          )
         );
       }
 
-      $("#endGameScores").append(
+      $("#endGameScores").prepend(
         $("<li>").text(pos + ": " + user.name + " - " + user.score)
       );
     });
@@ -209,6 +199,10 @@ $(function () {
 
     //only this user can select
     if (username == roundObj.name) {
+      Toast.fire({
+        title: "Your Turn",
+      });
+
       switch (roundObj.round) {
         case "letters":
           $(".letterButton").prop("disabled", false);
@@ -303,6 +297,9 @@ $(function () {
 
     if (hasError) {
       $("#answerLetter").attr("title", errorTitle);
+      $("#answerLetter").tooltip({
+        container: ".wrapper",
+      });
       $("#answerLetter").tooltip("show");
       $("#submitAnswer").prop("disabled", true);
     } else {
@@ -353,6 +350,9 @@ $(function () {
 
     if (hasError) {
       $("#answerNumber").attr("title", errorTitle);
+      $("#answerNumber").tooltip({
+        container: ".wrapper",
+      });
       $("#answerNumber").tooltip("show");
       $("#submitAnswer").prop("disabled", true);
     } else {

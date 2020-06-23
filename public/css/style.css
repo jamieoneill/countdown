@@ -148,8 +148,7 @@ a[data-toggle="collapse"] {
 #scores li {
   padding: 5px 10px;
 }
-#messages li:nth-child(odd),
-#scores li:nth-child(odd) {
+#messages li:nth-child(odd) {
   background: #eee;
 }
 #messages #scores {
