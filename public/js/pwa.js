@@ -431,7 +431,7 @@ $(function () {
   function submitAnswer() {
     if (currentRound == "letters") {
       socket.emit("submitAnswer", {
-        answer: $("#answerLetter").val(),
+        answer: $("#answerLetter").val().toLowerCase(),
         user: username,
       });
     } else if (currentRound == "numbers") {
@@ -441,7 +441,7 @@ $(function () {
       });
     } else if (currentRound == "conundrum") {
       socket.emit("checkConundrum", {
-        answer: $("#answerLetter").val(),
+        answer: $("#answerLetter").val().toUpperCase(),
         user: username,
       });
     }
