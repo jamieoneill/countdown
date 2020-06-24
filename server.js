@@ -487,7 +487,7 @@ const checkAnswers = (socket) => {
       lines.forEach(function (line) {
         //catch multiples with x char
         if (line.includes("x")) {
-          line = line.replace("x", "*");
+          line = line.replace(/x/g, "*");
         }
 
         sum = line.split("=")[0];
