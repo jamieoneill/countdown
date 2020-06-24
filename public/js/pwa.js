@@ -615,7 +615,7 @@ $(function () {
     Swal.fire({
       title: "Round complete",
       html: scoresHTML,
-      timer: 15000,
+      timer: 10000,
       timerProgressBar: true,
       showConfirmButton: false,
       allowOutsideClick: false,
