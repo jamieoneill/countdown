@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://countdown-with-friends.herokuapp.com/sitemap.xml
