@@ -4,7 +4,6 @@ const toCache = [
   "/index.html",
   "/css/style.css",
   "/js/pwa.js",
-  "/js/status.js",
 ];
 
 self.addEventListener("install", function (event) {

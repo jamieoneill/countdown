@@ -4,8 +4,59 @@ $(function () {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/service-worker.js");
   }
-  /* END PWA FUNCTIONS */
 
+  var isOnline;
+  if (document.readyState !== "loading") {
+    init();
+  } else {
+    document.addEventListener("DOMContentLoaded", function () {
+      init();
+    });
+  }
+
+  function init() {
+    if (!navigator.onLine) {
+      isOnline = false;
+      showOffline();
+    } else {
+      isOnline = true;
+    }
+  }
+
+  window.addEventListener("online", handleConnection);
+  window.addEventListener("offline", handleConnection);
+
+  function handleConnection() {
+    if (navigator.onLine) {
+      isReachable(window.location.origin).then(function (online) {
+        if (online) {
+          //coming back online, close connection message
+          if (!isOnline) {
+            Swal.close();
+          }
+          isOnline = true;
+          roomSelected = false;
+          getUserName();
+        } else {
+          isOnline = false;
+        }
+      });
+    } else {
+      isOnline = false;
+      showOffline();
+    }
+  }
+
+  function isReachable(url) {
+    return fetch(url, { method: "HEAD", mode: "no-cors" })
+      .then(function (resp) {
+        return resp && (resp.ok || resp.type === "opaque");
+      })
+      .catch(function (err) {
+        console.warn("[conn test failure]:", err);
+      });
+  }
+  /* END PWA FUNCTIONS */
   //initial view
   $("#startGame").prop("disabled", true);
 
@@ -141,7 +192,9 @@ $(function () {
   }
 
   //set username
-  getUserName();
+  if (isOnline) {
+    getUserName();
+  }
 
   //get new users
   socket.on("userAdded", function (user) {
@@ -510,7 +563,6 @@ $(function () {
       }
     }
 
-    //TODO: getting for numbers. need to add highest possible word here
     scoresHTML += '<div style="text-align:center">';
     scoresHTML += "<h3>Solution</h3>";
     if (currentRound == "letters") {
@@ -883,6 +935,18 @@ $(function () {
       toast.addEventListener("mouseleave", Swal.resumeTimer);
     },
   });
+
+  function showOffline() {
+    Swal.fire({
+      title: "Offline",
+      html:
+        "You are not connected to the internet.<br> Please check your connection.",
+      icon: "warning",
+      allowOutsideClick: false,
+      showCancelButton: false,
+      showConfirmButton: false,
+    });
+  }
 
   function checkInvitation() {
     //IE check
