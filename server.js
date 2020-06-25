@@ -526,7 +526,7 @@ const checkAnswers = (socket) => {
   //add best solutions
   if (socket.adapter.rooms[socket.roomname].currentRound.name == "letters") {
     bestSolution = socket.adapter.rooms[socket.roomname].roundBestWord;
-  } else if (socket.adapter.rooms[socket.roomname].currentRound == "numbers") {
+  } else if (socket.adapter.rooms[socket.roomname].currentRound.name == "numbers") {
     bestSolution = solver.solve_numbers(
       socket.adapter.rooms[socket.roomname].roundNumbers,
       socket.adapter.rooms[socket.roomname].numberToReach
