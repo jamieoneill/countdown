@@ -21,7 +21,10 @@
       href="/images/favicon-16x16.png"
     />
     <meta name="theme-color" content="#209CEE" />
-    <link rel="canonical" href="https://countdown-with-friends.herokuapp.com/"/>
+    <link
+      rel="canonical"
+      href="https://countdown-with-friends.herokuapp.com/"
+    />
 
     <script
       src="https://code.jquery.com/jquery-3.5.1.min.js"
@@ -160,17 +163,8 @@
 
         <!-- Start roundHolder-->
         <div id="roundHolder" class="gameView" style="display: none;">
-          <div
-            id="numberHolder"
-            class="form-group text-center"
-            style="font-size: large;"
-          ></div>
-
-          <div
-            id="letterHolder"
-            class="form-group text-center"
-            style="font-size: large;"
-          ></div>
+          <div id="numberHolder" class="numberHolder"></div>
+          <div id="letterHolder" class="letterHolder"></div>
 
           <div id="selectLetterButtons" class="form-group text-center">
             <button class="btn btn-primary letterButton" id="vowel">

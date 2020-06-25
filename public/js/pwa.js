@@ -122,6 +122,8 @@ $(function () {
     roundLetters.letters = [];
     roundLetters.types = [];
 
+    clearFields();
+
     switch (round) {
       case "letters":
         $("#selectNumberButtons").hide();
@@ -130,6 +132,10 @@ $(function () {
         $("#numberHolder").hide();
         $("#answerLetter").show();
         $("#answerNumber").hide();
+
+        for (i = 0; i < 9; i++) {
+          $("#letterHolder").append($("<span>"));
+        }
         break;
       case "numbers":
         $("#selectNumberButtons").show();
@@ -138,6 +144,13 @@ $(function () {
         $("#numberHolder").show();
         $("#answerLetter").hide();
         $("#answerNumber").show();
+
+        for (i = 0; i < 3; i++) {
+          $("#numberHolder").append($("<span>"));
+        }
+        for (i = 0; i < 6; i++) {
+          $("#letterHolder").append($("<span>"));
+        }
         break;
       case "conundrum":
         $("#selectNumberButtons").hide();
@@ -146,10 +159,12 @@ $(function () {
         $("#numberHolder").hide();
         $("#answerLetter").show();
         $("#answerNumber").hide();
+
+        for (i = 0; i < 9; i++) {
+          $("#letterHolder").append($("<span>"));
+        }
         break;
     }
-
-    clearFields();
 
     if (!stillPlaying) {
       if (!shownKnockOut) {
@@ -294,11 +309,11 @@ $(function () {
 
   //receive letter
   socket.on("selectLetter", function (letter) {
-    $("#letterHolder").append($("<span>").text(letter));
+    $("#letterHolder").find("span:empty:first").text(letter);
     roundLetters.letters.push(letter);
 
     //start countdown when all letters are selected
-    if ($("#letterHolder")[0].children.length == 9) {
+    if ($("#letterHolder").find("span:last").text() != "") {
       //add counts for each letter
       var count = {};
       roundLetters.letters.forEach(function (i) {
@@ -372,11 +387,13 @@ $(function () {
 
   //receive letter
   socket.on("selectNumber", function (number, numberToReach) {
-    $("#letterHolder").append($("<span>").text(number + "   "));
+    $("#letterHolder").find("span:empty:first").text(number);
 
     //start countdown when all numbers are selected
-    if ($("#letterHolder")[0].children.length == 6) {
-      $("#numberHolder").text(numberToReach);
+    if ($("#letterHolder").find("span:last").text() != "") {
+      numberToReach.split("").forEach((letter) => {
+        $("#numberHolder").find("span:empty:first").text(letter);
+      });
 
       Toast.fire({
         title: "Countdown!",
@@ -422,7 +439,7 @@ $(function () {
     let strToArr = conundrum.toUpperCase().split("");
 
     strToArr.forEach((letter) => {
-      $("#letterHolder").append($("<span>").text(letter));
+      $("#letterHolder").find("span:empty:first").text(letter);
       roundLetters.letters.push(letter);
     });
 
