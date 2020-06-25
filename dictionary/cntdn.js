@@ -27,12 +27,10 @@ function _recurse_solve_letters(letters, dictionary, used_letter, cb, answer) {
         if (used_letter[i] || done[c])
             continue;
 
-        if (dictionary[c]) {
-            used_letter[i] = true;
-            done[c] = true;
-            _recurse_solve_letters(letters, dictionary, used_letter, cb, answer+c);
-            used_letter[i] = false;
-        }
+        used_letter[i] = true;
+        done[c] = true;
+        _recurse_solve_letters(letters, dictionary, used_letter, cb, answer+c);
+        used_letter[i] = false;
 
     }
 }
