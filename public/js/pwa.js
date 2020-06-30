@@ -85,6 +85,8 @@ $(function () {
         $("#scores").empty();
         $("#messages").empty();
         $("#users").empty();
+        $("#roundHolder").hide();
+        $("#startGameScreen").show();
         document.querySelector(".room-title").innerHTML = "";
 
         roomSelected = false;
