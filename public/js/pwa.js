@@ -195,9 +195,9 @@ $(function () {
     $("#timer").text("30");
     $("#letterHolder").empty();
     $("#numberHolder").empty();
-    $(".letterButton").prop("disabled", true);
-    $(".numberButton").prop("disabled", true);
-    $(".conundrumButton").prop("disabled", true);
+    $(".letterButton").hide();
+    $(".numberButton").hide();
+    $(".conundrumButton").hide();
     $("#roughWork").val("");
     $("#answerLetter").val("");
     $("#answerNumber").val("");
@@ -316,13 +316,13 @@ $(function () {
 
       switch (roundObj.round) {
         case "letters":
-          $(".letterButton").prop("disabled", false);
+          $(".letterButton").show();
           break;
         case "numbers":
-          $(".numberButton").prop("disabled", false);
+          $(".numberButton").show();
           break;
         case "conundrum":
-          $(".conundrumButton").prop("disabled", false);
+          $(".conundrumButton").show();
           break;
       }
     }
@@ -370,7 +370,7 @@ $(function () {
       $("#roundUpdate").html("Enter your word...");
 
       socket.emit("startTimer", roundTimer);
-      $(".letterButton").prop("disabled", true);
+      $(".letterButton").hide();
     }
   });
 
@@ -444,7 +444,7 @@ $(function () {
       $("#roundUpdate").html("Enter your solution...");
 
       socket.emit("startTimer", roundTimer);
-      $(".numberButton").prop("disabled", true);
+      $(".numberButton").hide();
     }
   });
 
@@ -493,7 +493,7 @@ $(function () {
     $("#roundUpdate").html("Enter your solution...");
 
     socket.emit("startTimer", roundTimer);
-    $(".conundrumButton").prop("disabled", true);
+    $(".conundrumButton").hide();
   });
 
   socket.on("guessedConundrum", function (response) {
