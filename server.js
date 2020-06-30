@@ -167,6 +167,7 @@ io.on("connection", function (socket) {
     socket.adapter.rooms[socket.roomname].scoreBoard.push({
       id: socket.id,
       name: socket.username,
+      roundScores: [],
       score: 0,
       playing: true,
     });
@@ -343,6 +344,8 @@ io.on("connection", function (socket) {
       updateScoreboard(socket, [{ score: 10, user: response.user }]);
       clearInterval(socket.adapter.rooms[socket.roomname].timer);
       resetRound(socket);
+    } else {
+      updateScoreboard(socket, [{ score: 0, user: response.user }]);
     }
 
     //show the guess to everyone
@@ -526,7 +529,9 @@ const checkAnswers = (socket) => {
   //add best solutions
   if (socket.adapter.rooms[socket.roomname].currentRound.name == "letters") {
     bestSolution = socket.adapter.rooms[socket.roomname].roundBestWord;
-  } else if (socket.adapter.rooms[socket.roomname].currentRound.name == "numbers") {
+  } else if (
+    socket.adapter.rooms[socket.roomname].currentRound.name == "numbers"
+  ) {
     bestSolution = solver.solve_numbers(
       socket.adapter.rooms[socket.roomname].roundNumbers,
       socket.adapter.rooms[socket.roomname].numberToReach
@@ -548,6 +553,10 @@ function updateScoreboard(socket, answers) {
 
   answers.forEach((person) => {
     objIndex = scoreBoard.findIndex((obj) => obj.name == person.user);
+    scoreBoard[objIndex].roundScores.push({
+      round: socket.adapter.rooms[socket.roomname].currentRound.number,
+      score: person.score,
+    });
     scoreBoard[objIndex].score = scoreBoard[objIndex].score + person.score;
   });
 

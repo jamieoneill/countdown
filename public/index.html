@@ -58,7 +58,7 @@
     <div class="wrapper">
       <!-- Sidebar -->
       <nav id="sidebar">
-        <div class="card" style="height: 50%;">
+        <div class="card" style="height: 50%; border-radius: 0px;">
           <div
             class="card-header"
             style="
@@ -100,13 +100,14 @@
             </div>
           </div>
           <div class="row flex-shrink-0 bg-light">
-            <div class="col-12 py-1">
+            <div class="col-12 py-1" style="margin-bottom: -3px;">
               <div>
                 <input
                   type="text"
                   class="form-control"
                   id="inputMessage"
                   placeholder="Send message..."
+                  style="border-radius: 0px;"
                 />
               </div>
             </div>
@@ -239,7 +240,19 @@
               Game Over
             </div>
             <div class="card-body">
-              <ul id="endGameScores"></ul>
+              <table
+                class="table table-sm"
+                style="background-color: white; text-align: center;"
+                id="endGameScores"
+              >
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -291,8 +304,8 @@
             <h3>Knockout</h3>
             <p>
               A new twist on the game where the last placed player(s) are
-              removed from the game every 2,3, or 4 rounds depending on the game
-              length until there is a winner.
+              removed from the game every 2, 3, or 4 rounds depending on the
+              game length until there is a winner.
             </p>
           </div>
         </div>

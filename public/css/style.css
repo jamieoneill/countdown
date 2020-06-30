@@ -115,7 +115,7 @@ a[data-toggle="collapse"] {
   border-width: thin;
   font-weight: bold;
   font-size: 1.5em;
-  flex: 1 0 auto;
+  flex: 0.1 0 auto;
   height: auto;
   justify-content: center;
   align-items: center;

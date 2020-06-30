@@ -224,8 +224,6 @@ $(function () {
 
   socket.on("scores", function (scoreboard) {
     $("#scores").empty();
-    $("#endGameScores").empty();
-
     var pos = 1;
 
     scoreboard.forEach((user) => {
@@ -242,11 +240,56 @@ $(function () {
           )
         );
       }
-
-      $("#endGameScores").prepend(
-        $("<li>").text(pos + ": " + user.name + " - " + user.score)
-      );
     });
+
+    //final scoreboard
+    if (!roundOrder[roundNumber]) {
+      //header
+      for (i = 1; i < roundOrder.length + 1; i++) {
+        $("#endGameScores > thead tr").append("<th>" + i + "</th>");
+      }
+      $("#endGameScores > thead tr").append("<th>Total</th>");
+
+      //rows
+      scoreboard.forEach((user) => {
+        html = "<tr>";
+        html += '<th scope="row">' + pos + "</th>";
+        html +=
+          '<td style = "font-weight: bold">' +
+          user.name.toUpperCase() +
+          "</td>";
+
+        rowCount = 1;
+        for (i = 1; i < roundOrder.length + 1; i++) {
+          var foundThisRound;
+          foundThisRound = user.roundScores.find(function (r) {
+            return r.round == i;
+          });
+
+          if (foundThisRound) {
+            html += "<td>" + foundThisRound.score + "</td>";
+          } else {
+            //didn't submit answer for this round
+            html += "<td>-</td>";
+          }
+        }
+
+        //user didn't guess the conundrum account for that score
+        if (
+          user.roundScores.length == 4 ||
+          user.roundScores.length == 9 ||
+          user.roundScores.length == 14
+        ) {
+          html += "<td>-</td>";
+        }
+
+        html += "<td>" + user.score + "</td>";
+        html += "</tr>";
+
+        $("#endGameScores > tbody:last-child").append(html);
+        pos++;
+      });
+    }
   });
 
   socket.on("triggerGame", function (roundVars) {
@@ -805,6 +848,7 @@ $(function () {
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Password</div>' +
                 '<input id="swal-password" placeholder="Only needed for private games..." class="swal2-input">',
               focusConfirm: false,
+              allowOutsideClick: false,
               onBeforeOpen: () => {
                 $("#swal-roomname").keyup(function (e) {
                   if (e.keyCode === 13) {
