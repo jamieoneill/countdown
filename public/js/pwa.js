@@ -1032,4 +1032,18 @@ $(function () {
 
     return invited;
   }
+
+  $(".focusInput")
+    .focusin(function () {
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        $(".sidebarCollapse").hide();
+        $(".card-footer").hide();
+      }
+    })
+    .focusout(function () {
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        $(".sidebarCollapse").show();
+        $(".card-footer").show();
+      }
+    });
 }); //end main
