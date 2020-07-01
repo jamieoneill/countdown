@@ -227,21 +227,22 @@ $(function () {
   socket.on("scores", function (scoreboard) {
     $("#scores").empty();
     var pos = 1;
+    var style = "";
 
     scoreboard.forEach((user) => {
-      if (user.playing) {
-        $("#scores").prepend(
-          $('<li style="background: #eee;">').text(
-            user.name + " - " + user.score
-          )
-        );
-      } else {
-        $("#scores").prepend(
-          $('<li style="background: #ff5757">').text(
-            user.name + " - " + user.score
-          )
-        );
+      if (!user.playing) {
+        style = "background: #f56964;";
       }
+
+      $("#scores").append(
+        $('<li class="scoreHolder" style="' + style + '">').html(
+          '<span class="scoreText">' +
+            user.name +
+            '</span><span  class="scoreText">' +
+            user.score +
+            "</span>"
+        )
+      );
     });
 
     //final scoreboard

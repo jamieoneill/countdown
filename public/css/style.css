@@ -238,3 +238,17 @@ a[data-toggle="collapse"] {
 .card-body-custom {
   padding: 0px;
 }
+
+.scoreHolder {
+  border-bottom: 1px solid;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.scoreText {
+  flex-grow: 1;
+  flex-basis: 0;
+  align-self: center;
+  text-align: center;
+  text-transform: capitalize;
+}
