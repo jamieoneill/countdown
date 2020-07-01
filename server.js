@@ -484,6 +484,9 @@ const checkAnswers = (socket) => {
       var hasError = false;
       var sum;
       var res;
+      var allowedNumbers = socket.adapter.rooms[
+        socket.roomname
+      ].roundNumbers.slice();
 
       //check each line in answer
       var lines = response.answer.split("\n");
@@ -496,8 +499,26 @@ const checkAnswers = (socket) => {
         sum = line.split("=")[0];
         res = line.split("=")[1];
 
-        if (evaluate(sum) != res) {
+        //check valid numbers were used in line
+        var numbersUsed = (sum.match(/\d+/g) || []).map((n) => parseInt(n));
+        numbersUsed.forEach(function (num) {
+          var allowed = allowedNumbers.includes(num);
+
+          if (!allowed) {
+            //not valid number
+            hasError = true;
+          } else {
+            //number used remove it from being used again
+            allowedNumbers = allowedNumbers.filter((n) => n !== num);
+          }
+        });
+
+        //no error in input values so far. check math is correct
+        if (!hasError && evaluate(sum) != res) {
           hasError = true;
+        } else {
+          //the result can be used on the next line
+          allowedNumbers.push(evaluate(sum));
         }
       });
 
@@ -505,7 +526,7 @@ const checkAnswers = (socket) => {
       if (hasError) {
         response.score = 0;
       } else {
-        // res will be the last = value, which should be numberToReach //TODO: this is bad and can be cheesed, work it out better
+        // res will be the last value entered
         difference = diff(
           res,
           socket.adapter.rooms[socket.roomname].numberToReach
