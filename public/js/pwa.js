@@ -197,6 +197,7 @@ $(function () {
     $("#timer").text("30");
     $("#letterHolder").empty();
     $("#numberHolder").empty();
+    $(".letterButton").prop("disabled", false);
     $(".letterButton").hide();
     $(".numberButton").hide();
     $(".conundrumButton").hide();
