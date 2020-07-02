@@ -762,10 +762,19 @@ $(function () {
 
     //get rooms
     socket.emit("getRooms");
-    socket.on("rooms", function (getRooms) {
+    socket.on("rooms", function (roomData) {
+      var getRooms = roomData[0];
+      var playerCount = roomData[1];
       if (!roomSelected) {
         var table_body =
           '<div class="table-responsive"><table class="table table-custom"><thead><tr>';
+
+        //add online player count
+        table_body +=
+          '<div style="display: flex;justify-content: flex-end;">Online: <span style="color: #28a745;font-weight: bold;">' +
+          playerCount +
+          "</span></div>";
+
         table_body +=
           '<th scope="col">Room</th> <th scope="col">Type</th> <th scope="col">Host</th>  <th scope="col">Players</th> <th scope="col">Open</th> <th scope="col"></th>';
         table_body += "</tr></thead>";

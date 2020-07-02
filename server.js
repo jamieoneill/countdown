@@ -36,12 +36,15 @@ const largeNumbers = [25, 50, 75, 100];
 const conundrums = JSON.parse(
   fs.readFileSync("./dictionary/conundrums.json", "utf8")
 );
+var onlineCount = 0;
 
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/public/index.html");
 });
 
 io.on("connection", function (socket) {
+  onlineCount++;
+
   //message
   socket.on("message", function (msg) {
     io.sockets
@@ -196,6 +199,7 @@ io.on("connection", function (socket) {
   //remove the user
   socket.on("disconnect", () => {
     removeUserFromRoom(socket);
+    onlineCount--;
   });
 
   //leave room
@@ -216,7 +220,7 @@ io.on("connection", function (socket) {
       }
     }
 
-    io.sockets.emit("rooms", rooms);
+    io.sockets.emit("rooms", [rooms, onlineCount]);
   });
 
   //startGame
