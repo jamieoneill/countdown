@@ -1075,6 +1075,8 @@ $(function () {
     responsiveCanvas(); //resize canvas
   });
 
+  var max = 3;
+  var runs = 0;
   function responsiveCanvas() {
     $("#whiteboard").each(function (e) {
       var parentWidth = $(this).parent().outerWidth();
@@ -1083,10 +1085,14 @@ $(function () {
     });
     $("#whiteboard").jqScribble();
 
-    //not set correctly on first run. do it again
-    var refresh = setInterval(function () {
-      responsiveCanvas();
-      clearInterval(refresh);
-    }, 0500);
+    if (runs != max) {
+      //not set correctly on first run. do it again
+      var refresh = setInterval(function () {
+        console.log("called");
+        runs++;
+        responsiveCanvas();
+        clearInterval(refresh);
+      }, 0500);
+    }
   }
 }); //end main
