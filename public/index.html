@@ -165,6 +165,11 @@
 
         <!-- Start roundHolder-->
         <div id="roundHolder" class="gameView" style="display: none;">
+          <div
+            id="timer"
+            style="display: flex; justify-content: space-around;"
+          ></div>
+
           <div id="numberHolder" class="numberHolder"></div>
           <div id="letterHolder" class="letterHolder"></div>
 
@@ -191,8 +196,6 @@
               Start Conundrum
             </button>
           </div>
-
-          <div id="timer" class="form-group text-center">--</div>
 
           <div class="form-group">
             <ul
@@ -225,7 +228,11 @@
                 >
               </li>
             </ul>
-            <div class="tab-content" id="myTabContent">
+            <div
+              class="tab-content"
+              id="myTabContent"
+              style="max-height: 158px;"
+            >
               <div
                 class="tab-pane fade show active"
                 id="type"
