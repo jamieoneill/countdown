@@ -1054,22 +1054,18 @@ $(function () {
       if (window.matchMedia("(max-width: 768px)").matches) {
         $(".sidebarCollapse").hide();
         $(".card-footer").hide();
+        $("#draw-tab").hide();
+        $("#type-tab").hide();
       }
     })
     .focusout(function () {
       if (window.matchMedia("(max-width: 768px)").matches) {
         $(".sidebarCollapse").show();
         $(".card-footer").show();
+        $("#draw-tab").show();
+        $("#type-tab").show();
       }
     });
-
-  if (window.matchMedia("(max-width: 768px)").matches) {
-    $("#draw").addClass("active show");
-    $("#draw-tab").addClass("active");
-  } else {
-    $("#type").addClass("active show");
-    $("#type-tab").addClass("active");
-  }
 
   $(window).resize(function () {
     responsiveCanvas(); //resize canvas
