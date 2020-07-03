@@ -207,7 +207,9 @@ $(function () {
     $("#answerLetter").prop("disabled", false);
     $("#answerNumber").prop("disabled", false);
     $("#submitAnswer").prop("disabled", false);
-    $("#whiteboard").data("jqScribble").clear();
+    canvas = document.getElementById("whiteboard");
+    context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   //set username
@@ -303,8 +305,6 @@ $(function () {
 
     roundOrder = roundVars.order;
     roundTimer = roundVars.timer;
-
-    responsiveCanvas();
 
     socket.emit("getScores");
     setRound(roundOrder[roundNumber]);
