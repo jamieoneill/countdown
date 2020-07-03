@@ -208,9 +208,11 @@ $(function () {
     $("#answerLetter").prop("disabled", false);
     $("#answerNumber").prop("disabled", false);
     $("#submitAnswer").prop("disabled", false);
+    /*
     canvas = document.getElementById("whiteboard");
     context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
+    */
   }
 
   //set username
@@ -1117,7 +1119,7 @@ $(function () {
     });
 
   $(window).resize(function () {
-    responsiveCanvas(); //resize canvas
+    //responsiveCanvas(); //resize canvas
   });
 
   $("#draw-tab").on("click", function () {
