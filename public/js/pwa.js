@@ -1083,12 +1083,10 @@ $(function () {
     });
     $("#whiteboard").jqScribble();
 
-    //not set correctly. do it again
-    if ($("#whiteboard")[0].height != 158) {
-      var refresh = setInterval(function () {
-        responsiveCanvas();
-        clearInterval(refresh);
-      }, 0500);
-    }
+    //not set correctly on first run. do it again
+    var refresh = setInterval(function () {
+      responsiveCanvas();
+      clearInterval(refresh);
+    }, 0500);
   }
 }); //end main
