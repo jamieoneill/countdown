@@ -194,7 +194,7 @@ $(function () {
   }
 
   function clearFields() {
-    $("#timer").text("30");
+    $("#timer").text(roundTimer);
     $("#letterHolder").empty();
     $("#numberHolder").empty();
     $(".letterButton").prop("disabled", false);
@@ -207,6 +207,7 @@ $(function () {
     $("#answerLetter").prop("disabled", false);
     $("#answerNumber").prop("disabled", false);
     $("#submitAnswer").prop("disabled", false);
+    $("#whiteboard").data("jqScribble").clear();
   }
 
   //set username
@@ -302,6 +303,8 @@ $(function () {
 
     roundOrder = roundVars.order;
     roundTimer = roundVars.timer;
+
+    responsiveCanvas();
 
     socket.emit("getScores");
     setRound(roundOrder[roundNumber]);
@@ -857,7 +860,7 @@ $(function () {
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Rounds</div>' +
                 '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="5" checked="checked"><span class="swal2-label">5</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="10"><span class="swal2-label">10</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="15"><span class="swal2-label">15</span></label></div>' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Countdown timer</div>' +
-                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="30" checked="checked"><span class="swal2-label">30</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="Knockout"><span class="swal2-label">60</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="90"><span class="swal2-label">90</span></label></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="30" checked="checked"><span class="swal2-label">30</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="60"><span class="swal2-label">60</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="90"><span class="swal2-label">90</span></label></div>' +
                 '<div id="swal2-content" class="swal2-html-container" style="display: block;">Password</div>' +
                 '<input id="swal-password" placeholder="Only needed for private games..." class="swal2-input">',
               focusConfirm: false,
@@ -1059,4 +1062,37 @@ $(function () {
         $(".card-footer").show();
       }
     });
+
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    $("#draw").addClass("active show");
+    $("#draw-tab").addClass("active");
+  } else {
+    $("#type").addClass("active show");
+    $("#type-tab").addClass("active");
+  }
+
+  $(window).resize(function () {
+    responsiveCanvas(); //resize canvas
+  });
+
+  $("#draw-tab").on("click", function () {
+    responsiveCanvas(); //resize canvas
+  });
+
+  function responsiveCanvas() {
+    $("#whiteboard").each(function (e) {
+      var parentWidth = $(this).parent().outerWidth();
+      $(this).attr("width", parentWidth);
+      $(this).attr("height", 158);
+    });
+    $("#whiteboard").jqScribble();
+
+    //not set correctly. do it again
+    if ($("#whiteboard")[0].height != 158) {
+      var refresh = setInterval(function () {
+        responsiveCanvas();
+        clearInterval(refresh);
+      }, 0500);
+    }
+  }
 }); //end main
