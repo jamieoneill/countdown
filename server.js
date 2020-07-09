@@ -65,7 +65,7 @@ io.on("connection", function (socket) {
         return;
       }
       //check for password
-      if (socket.adapter.rooms[socket.roomname].password != "") {
+      if (socket.adapter.rooms[socket.roomname].open == "Private") {
         if (
           socket.adapter.rooms[socket.roomname].password === values.password
         ) {
@@ -226,6 +226,14 @@ io.on("connection", function (socket) {
     }
 
     io.sockets.emit("rooms", [rooms, onlineCount]);
+  });
+
+  socket.on("checkRoom", function (roomName) {
+    var rooms = Object.assign({}, socket.adapter.rooms);
+    io.sockets.connected[socket.id].emit("FoundRoom", {
+      found: rooms[roomName],
+      name: roomName,
+    });
   });
 
   //startGame

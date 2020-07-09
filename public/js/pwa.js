@@ -884,21 +884,27 @@ $(function () {
               if ($(this)[0].attributes["data-open"].value === "Private") {
                 Swal.fire({
                   title: "Password",
+                  text: "Password for room: " + results.room,
                   input: "text",
                   confirmButtonText: "Enter",
                   allowOutsideClick: false,
-                  showCancelButton: false,
+                  showCancelButton: true,
                   inputValidator: (value) => {
                     if (!value) {
                       return "You need to enter the password";
                     }
                   },
                 }).then((password) => {
-                  //join private game
-                  results.password = password.value;
-
-                  addUser(results);
-                  Swal.close();
+                  console.log(password);
+                  if (password.dismiss) {
+                    roomSelected = false
+                    joinRoom();
+                  } else {
+                    //join private game
+                    results.password = password.value;
+                    addUser(results);
+                    Swal.close();
+                  }
                 });
               } else {
                 addUser(results);
@@ -1102,14 +1108,60 @@ $(function () {
       // user was invited to room
       if (inviteRoom) {
         invited = true;
-        joining.username = username;
-        joining.room = inviteRoom;
-        addUser(joining);
+        socket.emit("checkRoom", inviteRoom);
       }
     }
 
     return invited;
   }
+
+  socket.on("FoundRoom", function (room) {
+    console.log(room);
+    var joining = {};
+
+    if (room.found) {
+      joining.username = username;
+      joining.room = room.name;
+
+      //password check
+      if (room.found.open === "Private") {
+        Swal.fire({
+          title: "Password",
+          text: "Password for room: " + room.name,
+          input: "text",
+          confirmButtonText: "Enter",
+          allowOutsideClick: false,
+          showCancelButton: true,
+          inputValidator: (value) => {
+            if (!value) {
+              return "You need to enter the password";
+            }
+          },
+        }).then((password) => {
+          if (password.dismiss) {
+            joinRoom();
+          } else {
+            //join private game
+            joining.password = password.value;
+            addUser(joining);
+          }
+        });
+      } else {
+        addUser(joining);
+      }
+    } else {
+      swal
+        .fire(
+          "Game Not Found",
+          room.name + " does not exist or the game has finished",
+          "warning"
+        )
+        .then(() => {
+          roomSelected = false;
+          joinRoom();
+        });
+    }
+  });
 
   $(".focusInput")
     .focusin(function () {
