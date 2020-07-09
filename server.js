@@ -49,13 +49,14 @@ io.on("connection", function (socket) {
   socket.on("message", function (msg) {
     io.sockets
       .in(socket.roomname)
-      .emit("message", socket.username + ": " + msg);
+      .emit("message", [socket.username, msg, socket.color]);
   });
 
   //users
   socket.on("addUser", function (values) {
     socket.username = values.username;
     socket.roomname = values.room;
+    socket.color = "#" + Math.random().toString(16).substr(2, 6);
 
     if (socket.adapter.rooms[socket.roomname]) {
       //check if game has started
@@ -135,7 +136,11 @@ io.on("connection", function (socket) {
     io.sockets.in(socket.roomname).emit("userAdded", socket.username);
     io.sockets
       .in(socket.roomname)
-      .emit("message", socket.username + " joined the room");
+      .emit("message", [
+        "Server",
+        socket.username + " joined the room",
+        "#000",
+      ]);
 
     //set room values when hosting
     if (!socket.adapter.rooms[socket.roomname].host) {
@@ -655,5 +660,5 @@ function removeUserFromRoom(socket) {
   io.sockets.in(socket.roomname).emit("removeUser", socket.username);
   io.sockets
     .in(socket.roomname)
-    .emit("message", socket.username + " left the room");
+    .emit("message", ["Server", socket.username + " left the room", "#000"]);
 }

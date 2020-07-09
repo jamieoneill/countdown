@@ -260,9 +260,7 @@ a[data-toggle="collapse"] {
 #scores li {
   padding: 5px 10px;
 }
-#messages li:nth-child(odd) {
-  background: #eee;
-}
+
 #messages #scores {
   margin-bottom: 40px;
 }
@@ -304,4 +302,12 @@ a[data-toggle="collapse"] {
   align-self: center;
   text-align: center;
   text-transform: capitalize;
+}
+
+.messageHolder {
+  border-bottom: 1px solid;
+  overflow-wrap: anywhere;
+}
+.messageText {
+  margin-right: 10px;
 }

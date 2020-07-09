@@ -756,13 +756,23 @@ $(function () {
   }
 
   //server messages
-  socket.on("message", function (msg) {
-    //add bold for messages from the server
-    if (!msg.includes(":")) {
-      $("#messages").append($("<li>").append($("<b>").text(msg)));
-    } else {
-      $("#messages").append($("<li>").text(msg));
-    }
+  socket.on("message", function (message) {
+    var from = message[0];
+    var msg = message[1];
+    var color = message[2];
+
+    $("#messages").append(
+      $('<li class="messageHolder">').html(
+        '<span class="messageText" style="font-weight: bold;color:' +
+          color +
+          ';">' +
+          from +
+          ':</span><span  class="messageText">' +
+          msg +
+          "</span>"
+      )
+    );
+
     $("#messageHolder").animate(
       { scrollTop: $("#messageHolder")[0].scrollHeight },
       1000
