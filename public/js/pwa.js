@@ -170,17 +170,12 @@ $(function () {
 
     if (!stillPlaying) {
       if (!shownKnockOut) {
-        var text = "";
-        if (host) {
-          text =
-            "You have been knocked out of the game. You are acting as the host of this game. DO NOT CLOSE OR REFRESH THE PAGE to allow other players to keep playing.";
-        } else {
-          text =
-            "You have been knocked out of the game. You can still watch the game without playing or refresh the page to join a new game.";
-        }
-
         shownKnockOut = true;
-        swal.fire("Knocked Out!", text, "warning");
+        swal.fire(
+          "Knocked Out!",
+          "You have been knocked out of the game. You can still watch the game without playing or refresh the page to join a new game.",
+          "warning"
+        );
       }
 
       $("#answerLetter").prop("disabled", true);
@@ -837,9 +832,9 @@ $(function () {
 
         //add online player count
         table_body +=
-          '<div style="display: flex;justify-content: flex-end;">Online: <span style="color: #28a745;font-weight: bold;">' +
+          '<div style="display: flex;justify-content: space-around;"><div style="justify-content: space-around;"><button id="refresh" type="button" class="btn"><i class="fas fa-sync"></i></button></div><div style="justify-content: space-around;margin-left: auto;">Online: <span style="color: #28a745;font-weight: bold;">' +
           playerCount +
-          "</span></div>";
+          "</span></div></div>";
 
         table_body +=
           '<th scope="col">Room</th> <th scope="col">Type</th> <th scope="col">Host</th>  <th scope="col">Players</th> <th scope="col">Open</th> <th scope="col"></th>';
@@ -878,6 +873,12 @@ $(function () {
           allowOutsideClick: false,
           showCancelButton: false,
           onBeforeOpen: () => {
+            //refresh button
+            $("#refresh").on("click", function () {
+              roomSelected = false
+              joinRoom();
+            });
+
             //add click to join buttons
             $(".joinButton").on("click", function (event) {
               //joining a existing room
