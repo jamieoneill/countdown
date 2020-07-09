@@ -631,7 +631,10 @@ function removeUserFromRoom(socket) {
     scores = socket.adapter.rooms[socket.roomname].scoreBoard;
 
     objIndex = scores.findIndex((obj) => obj.id == socket.id);
-    scores[objIndex].playing = false;
+    //need to check the user was accepted into the game first
+    if (scores[objIndex]) {
+      scores[objIndex].playing = false;
+    }
 
     //set new host
     if (socket.adapter.rooms[socket.roomname].host == socket.username) {

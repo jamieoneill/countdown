@@ -1013,6 +1013,7 @@ $(function () {
     //host can start game
     if (host) {
       $("#startGame").prop("disabled", false);
+      $("#startGame").html("Start Game");
     } else {
       $("#startGame").html("Waiting for host to start the game...");
     }
