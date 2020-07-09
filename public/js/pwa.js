@@ -222,7 +222,9 @@ $(function () {
 
   //get new users
   socket.on("userAdded", function (user) {
-    $("#users").append($("<li>").text(user));
+    $("#users").append(
+      $('<li style="color:' + user.color + '">').text(user.name)
+    );
   });
 
   //remove user
@@ -895,9 +897,8 @@ $(function () {
                     }
                   },
                 }).then((password) => {
-                  console.log(password);
                   if (password.dismiss) {
-                    roomSelected = false
+                    roomSelected = false;
                     joinRoom();
                   } else {
                     //join private game
@@ -999,7 +1000,9 @@ $(function () {
         users.pop();
 
         users.forEach((user) => {
-          $("#users").append($("<li>").text(user));
+          $("#users").append(
+            $('<li style="color:' + user.color + '">').text(user.name)
+          );
         });
       }
     });
@@ -1116,7 +1119,6 @@ $(function () {
   }
 
   socket.on("FoundRoom", function (room) {
-    console.log(room);
     var joining = {};
 
     if (room.found) {

@@ -133,7 +133,7 @@ io.on("connection", function (socket) {
         break;
     }
 
-    io.sockets.in(socket.roomname).emit("userAdded", socket.username);
+    io.sockets.in(socket.roomname).emit("userAdded",{name: socket.username,color:socket.color});
     io.sockets
       .in(socket.roomname)
       .emit("message", [
@@ -184,8 +184,10 @@ io.on("connection", function (socket) {
   socket.on("getUsers", () => {
     var users = [];
     for (socketID in io.nsps["/"].adapter.rooms[socket.roomname].sockets) {
-      var nickname = io.nsps["/"].connected[socketID].username;
-      users.push(nickname);
+      users.push({
+        name: io.nsps["/"].connected[socketID].username,
+        color: io.nsps["/"].connected[socketID].color,
+      });
     }
 
     io.sockets.in(socket.roomname).emit("users", users);
