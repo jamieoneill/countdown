@@ -173,7 +173,7 @@ $(function () {
         shownKnockOut = true;
         swal.fire(
           "Knocked Out!",
-          "You have been knocked out of the game. You can still watch the game without playing or refresh the page to join a new game.",
+          "You have been knocked out of the game. You can still watch the game without playing or exit the room to join a new game.",
           "warning"
         );
       }
@@ -832,7 +832,7 @@ $(function () {
 
         //add online player count
         table_body +=
-          '<div style="display: flex;justify-content: space-around;"><div style="justify-content: space-around;"><button id="refresh" type="button" class="btn"><i class="fas fa-sync"></i></button></div><div style="justify-content: space-around;margin-left: auto;">Online: <span style="color: #28a745;font-weight: bold;">' +
+          '<div style="display: flex;justify-content: space-around;"><div style="justify-content: space-around;align-self: center;"><button id="refresh" type="button" class="btn"><i class="fas fa-sync"></i></button></div><div style="justify-content: space-around;margin-left: auto;align-self: center;">Online: <span style="color: #28a745;font-weight: bold;">' +
           playerCount +
           "</span></div></div>";
 
