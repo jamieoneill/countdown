@@ -102,7 +102,20 @@ $(function () {
     }
   });
 
-  var socket = io.connect();
+  var socket = io.connect({ reconnection: false });
+
+  socket.on("connect_error", () => {
+    swal.close();
+    swal.fire({
+      title: "Maintenance",
+      text:
+        "Our server is undergoing maintenance. This is usually pretty short please check back again soon.",
+      icon: "warning",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+    });
+  });
+
   var username;
   var host;
   var stillPlaying = true;
@@ -875,7 +888,7 @@ $(function () {
           onBeforeOpen: () => {
             //refresh button
             $("#refresh").on("click", function () {
-              roomSelected = false
+              roomSelected = false;
               joinRoom();
             });
 
