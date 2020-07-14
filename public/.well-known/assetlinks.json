@@ -1,5 +1,22 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target" : { "namespace": "android_app", "package_name": "com.mismatched.countdown_with_friends",
-                   "sha256_cert_fingerprints": ["AD:93:F0:C8:F6:CE:2D:F1:42:0E:A6:6E:8B:73:87:15:19:C6:DF:A1:1E:08:67:3A:0F:C0:C2:A1:C0:EF:B4:7C"] }
-    }]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mismatched.countdown_with_friends",
+      "sha256_cert_fingerprints": [
+        "AD:93:F0:C8:F6:CE:2D:F1:42:0E:A6:6E:8B:73:87:15:19:C6:DF:A1:1E:08:67:3A:0F:C0:C2:A1:C0:EF:B4:7C"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mismatched.countdown_with_friends",
+      "sha256_cert_fingerprints": [
+        "B7:9D:28:E1:6A:D5:A7:EB:08:AD:96:11:AA:48:43:A6:D6:E5:C7:6E:E4:00:B0:86:CB:E6:90:CA:95:AF:2E:AE"
+      ]
+    }
+  }
+]

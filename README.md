@@ -22,7 +22,7 @@ Set up your own room, invite your friends and play to see who is the best!
 https://countdown-with-friends.herokuapp.com/
 
 ### Android App:
-Coming soon
+https://play.google.com/store/apps/details?id=com.mismatched.countdown_with_friends
 
 ## Screenshots:
 ![1](https://user-images.githubusercontent.com/5860973/87311605-5d645e80-c517-11ea-843e-7c3f9bc290ad.png)
