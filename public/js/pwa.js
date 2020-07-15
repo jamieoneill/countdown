@@ -126,6 +126,7 @@ $(function () {
   var roundNumber = 0;
   var currentRound;
   var roundLetters = { letters: [], counts: {}, types: [] };
+  var numOfLarge = 0;
 
   //rounds
   $("#startGame").click(function (e) {
@@ -208,6 +209,7 @@ $(function () {
     $("#numberHolder").empty();
     $(".letterButton").prop("disabled", false);
     $(".letterButton").hide();
+    $(".numberButton").prop("disabled", false);
     $(".numberButton").hide();
     $(".conundrumButton").hide();
     $("#roughWork").val("");
@@ -445,6 +447,15 @@ $(function () {
 
   //request number
   $(".numberButton").click(function (e) {
+    if (e.target.id == "large") {
+      numOfLarge++;
+    }
+
+    //max 4 large
+    if (numOfLarge == 4) {
+      $("#large").prop("disabled", true);
+    }
+
     socket.emit("selectNumber", e.target.id);
   });
 
@@ -462,6 +473,7 @@ $(function () {
         title: "Countdown!",
       });
       $("#roundUpdate").html("Enter your solution...");
+      numOfLarge = 0;
 
       socket.emit("startTimer", roundTimer);
       $(".numberButton").hide();

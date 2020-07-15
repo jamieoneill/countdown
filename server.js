@@ -31,7 +31,28 @@ const vowels =
   "AAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEEIIIIIIIIIIIIIOOOOOOOOOOOOOUUUUU";
 const consonants =
   "BBCCCDDDDDDFFGGGHHJKLLLLLMMMMNNNNNNNNPPPPQRRRRRRRRRSSSSSSSSSTTTTTTTTTVWXYZ";
-const smallNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const smallNumbers = [
+  1,
+  1,
+  2,
+  2,
+  3,
+  3,
+  4,
+  4,
+  5,
+  5,
+  6,
+  6,
+  7,
+  7,
+  8,
+  8,
+  9,
+  9,
+  10,
+  10,
+];
 const largeNumbers = [25, 50, 75, 100];
 const conundrums = JSON.parse(
   fs.readFileSync("./dictionary/conundrums.json", "utf8")
@@ -133,7 +154,9 @@ io.on("connection", function (socket) {
         break;
     }
 
-    io.sockets.in(socket.roomname).emit("userAdded",{name: socket.username,color:socket.color});
+    io.sockets
+      .in(socket.roomname)
+      .emit("userAdded", { name: socket.username, color: socket.color });
     io.sockets
       .in(socket.roomname)
       .emit("message", [
@@ -159,6 +182,8 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].consonants = consonants;
       socket.adapter.rooms[socket.roomname].roundLetters = "";
       socket.adapter.rooms[socket.roomname].roundBestWord = "";
+      socket.adapter.rooms[socket.roomname].smallNumbers = smallNumbers.slice();
+      socket.adapter.rooms[socket.roomname].largeNumbers = largeNumbers.slice();
       socket.adapter.rooms[socket.roomname].letterCount = 0;
       socket.adapter.rooms[socket.roomname].numberCount = 0;
       socket.adapter.rooms[socket.roomname].numberToReach = 0;
@@ -312,15 +337,15 @@ io.on("connection", function (socket) {
     //generate numberToReach once to save on calls to server
     if (socket.adapter.rooms[socket.roomname].numberToReach == 0) {
       socket.adapter.rooms[socket.roomname].numberToReach =
-        selectNumber("reach").toString() +
-        selectNumber("reach").toString() +
-        selectNumber("reach").toString();
+        selectNumber(socket, "reach").toString() +
+        selectNumber(socket, "reach").toString() +
+        selectNumber(socket, "reach").toString();
     }
 
     if (socket.adapter.rooms[socket.roomname].numberCount < 6) {
       socket.adapter.rooms[socket.roomname].numberCount++;
 
-      var selectedNumber = selectNumber(type);
+      var selectedNumber = selectNumber(socket, type);
       socket.adapter.rooms[socket.roomname].roundNumbers.push(selectedNumber);
 
       io.sockets
@@ -437,17 +462,21 @@ io.on("connection", function (socket) {
   });
 });
 
-const selectNumber = (type) => {
+const selectNumber = (socket, type) => {
   switch (type) {
     case "small":
-      random = smallNumbers[Math.floor(Math.random() * smallNumbers.length)];
+      arr = socket.adapter.rooms[socket.roomname].smallNumbers
+      random = arr[  Math.floor( Math.random() * arr.length )];
+      socket.adapter.rooms[socket.roomname].smallNumbers.splice(arr.indexOf(random),1);
       break;
     case "large":
-      random = largeNumbers[Math.floor(Math.random() * largeNumbers.length)];
+      arr = socket.adapter.rooms[socket.roomname].largeNumbers
+      random = arr[  Math.floor( Math.random() * arr.length )];
+      socket.adapter.rooms[socket.roomname].largeNumbers.splice(arr.indexOf(random),1);
       break;
     case "reach":
       random =
-        smallNumbers[Math.floor(Math.random() * (smallNumbers.length - 1))];
+        smallNumbers[Math.floor(Math.random() * (smallNumbers.length - 2))];
       break;
   }
 
@@ -622,6 +651,8 @@ function resetRound(socket) {
   socket.adapter.rooms[socket.roomname].roundLetters = "";
   socket.adapter.rooms[socket.roomname].roundBestWord = "";
   socket.adapter.rooms[socket.roomname].letterCount = 0;
+  socket.adapter.rooms[socket.roomname].smallNumbers = smallNumbers.slice();
+  socket.adapter.rooms[socket.roomname].largeNumbers = largeNumbers.slice();
   socket.adapter.rooms[socket.roomname].numberCount = 0;
   socket.adapter.rooms[socket.roomname].numberToReach = 0;
   socket.adapter.rooms[socket.roomname].roundNumbers = [];
