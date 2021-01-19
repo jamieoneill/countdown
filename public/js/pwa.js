@@ -847,7 +847,7 @@ $(function () {
     results.username = username;
 
     //get rooms
-    socket.emit("getRooms");
+    socket.emit("getRooms", false);
     socket.on("rooms", function (roomData) {
       var getRooms = roomData[0];
       var playerCount = roomData[1];

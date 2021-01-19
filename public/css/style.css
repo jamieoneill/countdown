@@ -311,3 +311,32 @@ a[data-toggle="collapse"] {
 .messageText {
   margin-right: 10px;
 }
+
+/* ---------------------------------------------------
+  SYNTAX HIGHLIGHT
+----------------------------------------------------- */
+pre {
+  outline: 1px solid #ccc;
+  padding: 5px;
+  margin: 5px;
+}
+.string {
+  color: green;
+}
+.number {
+  color: darkorange;
+}
+.boolean {
+  color: blue;
+}
+.null {
+  color: magenta;
+}
+.key {
+  color: red;
+}
+
+.no-margin {
+  padding: 0 !important;
+  margin: 0 !important;
+}

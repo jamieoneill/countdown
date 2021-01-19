@@ -175,6 +175,7 @@ io.on("connection", function (socket) {
       socket.adapter.rooms[socket.roomname].open = values.open;
       socket.adapter.rooms[socket.roomname].password = values.password;
       socket.adapter.rooms[socket.roomname].started = false;
+      socket.adapter.rooms[socket.roomname].startTime = "";
       socket.adapter.rooms[socket.roomname].scoreBoard = [];
       socket.adapter.rooms[socket.roomname].roundAnswers = [];
       socket.adapter.rooms[socket.roomname].selectingPlayer = "";
@@ -242,13 +243,15 @@ io.on("connection", function (socket) {
   });
 
   //rooms
-  socket.on("getRooms", function () {
+  socket.on("getRooms", function (showAll) {
     var rooms = Object.assign({}, socket.adapter.rooms);
 
     //don't include rooms with no host or have already started
-    for (const room in rooms) {
-      if (!rooms[room].host || rooms[room].started) {
-        delete rooms[room];
+    if (!showAll) {
+      for (const room in rooms) {
+        if (!rooms[room].host || rooms[room].started) {
+          delete rooms[room];
+        }
       }
     }
 
@@ -266,6 +269,8 @@ io.on("connection", function (socket) {
   //startGame
   socket.on("startGame", function () {
     socket.adapter.rooms[socket.roomname].started = true;
+    socket.adapter.rooms[socket.roomname].startTime =
+      new Date().toISOString();
     io.sockets.in(socket.roomname).emit("triggerGame", {
       order: socket.adapter.rooms[socket.roomname].rounds,
       timer: socket.adapter.rooms[socket.roomname].roundTime,
@@ -465,14 +470,20 @@ io.on("connection", function (socket) {
 const selectNumber = (socket, type) => {
   switch (type) {
     case "small":
-      arr = socket.adapter.rooms[socket.roomname].smallNumbers
-      random = arr[  Math.floor( Math.random() * arr.length )];
-      socket.adapter.rooms[socket.roomname].smallNumbers.splice(arr.indexOf(random),1);
+      arr = socket.adapter.rooms[socket.roomname].smallNumbers;
+      random = arr[Math.floor(Math.random() * arr.length)];
+      socket.adapter.rooms[socket.roomname].smallNumbers.splice(
+        arr.indexOf(random),
+        1
+      );
       break;
     case "large":
-      arr = socket.adapter.rooms[socket.roomname].largeNumbers
-      random = arr[  Math.floor( Math.random() * arr.length )];
-      socket.adapter.rooms[socket.roomname].largeNumbers.splice(arr.indexOf(random),1);
+      arr = socket.adapter.rooms[socket.roomname].largeNumbers;
+      random = arr[Math.floor(Math.random() * arr.length)];
+      socket.adapter.rooms[socket.roomname].largeNumbers.splice(
+        arr.indexOf(random),
+        1
+      );
       break;
     case "reach":
       random =
