@@ -269,8 +269,7 @@ io.on("connection", function (socket) {
   //startGame
   socket.on("startGame", function () {
     socket.adapter.rooms[socket.roomname].started = true;
-    socket.adapter.rooms[socket.roomname].startTime =
-      new Date().toISOString();
+    socket.adapter.rooms[socket.roomname].startTime = new Date().toISOString();
     io.sockets.in(socket.roomname).emit("triggerGame", {
       order: socket.adapter.rooms[socket.roomname].rounds,
       timer: socket.adapter.rooms[socket.roomname].roundTime,
@@ -630,14 +629,19 @@ const checkAnswers = (socket) => {
 
 function updateScoreboard(socket, answers) {
   scoreBoard = socket.adapter.rooms[socket.roomname].scoreBoard;
-
   answers.forEach((person) => {
-    objIndex = scoreBoard.findIndex((obj) => obj.name == person.user);
-    scoreBoard[objIndex].roundScores.push({
-      round: socket.adapter.rooms[socket.roomname].currentRound.number,
-      score: person.score,
-    });
-    scoreBoard[objIndex].score = scoreBoard[objIndex].score + person.score;
+    try {
+      objIndex = scoreBoard.findIndex((obj) => obj.name == person.user);
+      scoreBoard[objIndex].roundScores.push({
+        round: socket.adapter.rooms[socket.roomname].currentRound.number,
+        score: person.score,
+      });
+      scoreBoard[objIndex].score = scoreBoard[objIndex].score + person.score;
+    } catch {
+      io.sockets
+      .in(socket.roomname)
+      .emit("message", ["Server", "An error occured when updating " + person.user + "'s score. Please consider this when viwing the final results", "#000"]);
+    }
   });
 
   scoreBoard.sort(function (a, b) {
