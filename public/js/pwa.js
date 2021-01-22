@@ -85,6 +85,7 @@ $(function () {
         $("#scores").empty();
         $("#messages").empty();
         $("#users").empty();
+        $("#roundUpdate").html("");
         $("#roundHolder").hide();
         $("#startGameScreen").show();
         document.querySelector(".room-title").innerHTML = "";
@@ -294,15 +295,6 @@ $(function () {
             //didn't submit answer for this round
             html += "<td>-</td>";
           }
-        }
-
-        //user didn't guess the conundrum account for that score
-        if (
-          user.roundScores.length == 4 ||
-          user.roundScores.length == 9 ||
-          user.roundScores.length == 14
-        ) {
-          html += "<td>-</td>";
         }
 
         html += "<td>" + user.score + "</td>";
@@ -819,15 +811,19 @@ $(function () {
 
   function getUserName() {
     Swal.fire({
-      title: "Countdown With Friends",
+      //title: "<span class='cd-letter'>C</span>ountdown<br><span class='cd-letter'>W</span>ith Friends",
+      html:
+        '<span class="cd-letter">C</span><span class="post-cd-letter">OUNTDOWN</span> <br>' +
+        '<span class="cd-letter">W</span><span class="post-cd-letter">ITH FRIENDS</span> <br>' +
+        '<img style="height: 100px;" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pg0KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE3LjEuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPg0KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4NCjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDUxMiA1MTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDUxMiA1MTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwYXRoIGQ9Ik00MzcuMDIsNzQuOThDMzg4LjY2NywyNi42MjgsMzI0LjM4LDAsMjU2LDBTMTIzLjMzMywyNi42MjgsNzQuOTgsNzQuOThTMCwxODcuNjIsMCwyNTZzMjYuNjI4LDEzMi42NjcsNzQuOTgsMTgxLjAyDQoJCVMxODcuNjIsNTEyLDI1Niw1MTJzMTMyLjY2Ny0yNi42MjgsMTgxLjAyLTc0Ljk4UzUxMiwzMjQuMzgsNTEyLDI1NlM0ODUuMzcyLDEyMy4zMzMsNDM3LjAyLDc0Ljk4eiBNNDI1LjcwNiw0MjUuNzA2DQoJCUMzODAuMzc2LDQ3MS4wMzYsMzIwLjEwNiw0OTYsMjU2LDQ5NnMtMTI0LjM3Ni0yNC45NjQtMTY5LjcwNi03MC4yOTRDNDAuOTY0LDM4MC4zNzYsMTYsMzIwLjEwNiwxNiwyNTYNCgkJUzQwLjk2NCwxMzEuNjI0LDg2LjI5NCw4Ni4yOTRDMTMxLjYyNCw0MC45NjQsMTkxLjg5NCwxNiwyNTYsMTZzMTI0LjM3NiwyNC45NjQsMTY5LjcwNiw3MC4yOTQNCgkJQzQ3MS4wMzYsMTMxLjYyNCw0OTYsMTkxLjg5NCw0OTYsMjU2UzQ3MS4wMzYsMzgwLjM3Niw0MjUuNzA2LDQyNS43MDZ6Ii8+DQoJPHBhdGggZD0iTTQ4LDI1NmMwLTExNC42OTEsOTMuMzA5LTIwOCwyMDgtMjA4YzQxLjM2OCwwLDgxLjMyNiwxMi4xMTEsMTE1LjU1NSwzNS4wMjRjMy42NzEsMi40NTgsOC42NCwxLjQ3NCwxMS4wOTgtMi4xOTgNCgkJYzIuNDU4LTMuNjcxLDEuNDc0LTguNjQtMi4xOTgtMTEuMDk4QzM0My41ODQsNDUuMDQ2LDMwMC41NDgsMzIsMjU2LDMyYy01OS44MzMsMC0xMTYuMDg0LDIzLjMtMTU4LjM5Miw2NS42MDgNCgkJQzU1LjMsMTM5LjkxNiwzMiwxOTYuMTY3LDMyLDI1NmMwLDU1LjIsMjAuMjU0LDEwOC4yMzIsNTcuMDMyLDE0OS4zMjhjMS41OCwxLjc2NiwzLjc2OCwyLjY2NSw1Ljk2NCwyLjY2NQ0KCQljMS44OTksMCwzLjgwNi0wLjY3Miw1LjMzMi0yLjAzOWMzLjI5Mi0yLjk0NywzLjU3My04LjAwNCwwLjYyNi0xMS4yOTZDNjYuODA3LDM1Ni41LDQ4LDMwNy4yNTcsNDgsMjU2eiIvPg0KCTxwYXRoIGQ9Ik00NDIuMjczLDEzMS41NDdjLTIuNDU4LTMuNjcyLTcuNDI3LTQuNjU2LTExLjA5OC0yLjE5OGMtMy42NzEsMi40NTgtNC42NTYsNy40MjctMi4xOTgsMTEuMDk4DQoJCUM0NTEuODg5LDE3NC42NzUsNDY0LDIxNC42MzMsNDY0LDI1NmMwLDExNC42OTEtOTMuMzA5LDIwOC0yMDgsMjA4Yy00Ny41ODMsMC05NC4wOTYtMTYuNDc5LTEzMC45NjktNDYuNDAxDQoJCWMtMy40MzEtMi43ODQtOC40NjktMi4yNi0xMS4yNTMsMS4xNzFzLTIuMjYsOC40NjksMS4xNzEsMTEuMjUzQzE1NC42NjQsNDYyLjI1MSwyMDQuNzU3LDQ4MCwyNTYsNDgwDQoJCWM1OS44MzMsMCwxMTYuMDg0LTIzLjMsMTU4LjM5Mi02NS42MDhDNDU2LjcsMzcyLjA4NCw0ODAsMzE1LjgzMyw0ODAsMjU2QzQ4MCwyMTEuNDUzLDQ2Ni45NTQsMTY4LjQxNyw0NDIuMjczLDEzMS41NDd6Ii8+DQoJPHBhdGggZD0iTTM5NC42NTgsMTAwLjk1NWM1LjM3OSw0LjgxMywxMC41NjUsOS45NjQsMTUuNDE0LDE1LjMwOGMxLjU3OSwxLjc0LDMuNzQ5LDIuNjI0LDUuOTI3LDIuNjI0DQoJCWMxLjkxNywwLDMuODQyLTAuNjg2LDUuMzc0LTIuMDc2YzMuMjcxLTIuOTY5LDMuNTE3LTguMDI5LDAuNTQ4LTExLjMwMWMtNS4yMi01Ljc1Mi0xMC44MDMtMTEuMjk2LTE2LjU5My0xNi40NzgNCgkJYy0zLjI5Mi0yLjk0Ni04LjM1LTIuNjY2LTExLjI5NiwwLjYyNlMzOTEuMzY1LDk4LjAwOCwzOTQuNjU4LDEwMC45NTV6Ii8+DQoJPHBhdGggZD0iTTI1NiwxMDRjNC40MTgsMCw4LTMuNTgyLDgtOFY3MmMwLTQuNDE4LTMuNTgyLTgtOC04cy04LDMuNTgyLTgsOHYyNEMyNDgsMTAwLjQxOCwyNTEuNTgyLDEwNCwyNTYsMTA0eiIvPg0KCTxwYXRoIGQ9Ik0yNDgsNDE2djI0YzAsNC40MTgsMy41ODIsOCw4LDhzOC0zLjU4Miw4LTh2LTI0YzAtNC40MTgtMy41ODItOC04LThTMjQ4LDQxMS41ODIsMjQ4LDQxNnoiLz4NCgk8cGF0aCBkPSJNMTA0LDI1NmMwLTQuNDE4LTMuNTgyLTgtOC04SDcyYy00LjQxOCwwLTgsMy41ODItOCw4czMuNTgyLDgsOCw4aDI0QzEwMC40MTgsMjY0LDEwNCwyNjAuNDE4LDEwNCwyNTZ6Ii8+DQoJPHBhdGggZD0iTTQwOCwyNTZjMCw0LjQxOCwzLjU4Miw4LDgsOGgyNGM0LjQxOCwwLDgtMy41ODIsOC04cy0zLjU4Mi04LTgtOGgtMjRDNDExLjU4MiwyNDgsNDA4LDI1MS41ODIsNDA4LDI1NnoiLz4NCgk8cGF0aCBkPSJNMTgyLjkyOCwxMTMuNDM2bC0xMi0yMC43ODVjLTIuMjA5LTMuODI3LTcuMTAyLTUuMTM2LTEwLjkyOC0yLjkyOGMtMy44MjYsMi4yMDktNS4xMzcsNy4xMDItMi45MjgsMTAuOTI4bDEyLDIwLjc4NQ0KCQljMS40ODIsMi41NjYsNC4xNzEsNC4wMDEsNi45MzYsNC4wMDFjMS4zNTcsMCwyLjczMy0wLjM0NiwzLjk5My0xLjA3M0MxODMuODI2LDEyMi4xNTUsMTg1LjEzNywxMTcuMjYyLDE4Mi45MjgsMTEzLjQzNnoiLz4NCgk8cGF0aCBkPSJNMzQyLjkyOCwzOTAuNTY0Yy0yLjIwOS0zLjgyNi03LjEwMy01LjEzNS0xMC45MjgtMi45MjhjLTMuODI2LDIuMjA5LTUuMTM3LDcuMTAyLTIuOTI4LDEwLjkyOGwxMiwyMC43ODUNCgkJYzEuNDgyLDIuNTY2LDQuMTcxLDQuMDAxLDYuOTM2LDQuMDAxYzEuMzU3LDAsMi43MzMtMC4zNDYsMy45OTMtMS4wNzNjMy44MjYtMi4yMDksNS4xMzctNy4xMDIsMi45MjgtMTAuOTI4TDM0Mi45MjgsMzkwLjU2NHoiLz4NCgk8cGF0aCBkPSJNOTYuNjU5LDM1Ni4wMDFjMS4zNTcsMCwyLjczMy0wLjM0NiwzLjk5My0xLjA3M2wyMC43ODUtMTJjMy44MjYtMi4yMDksNS4xMzctNy4xMDIsMi45MjgtMTAuOTI4DQoJCWMtMi4yMDktMy44MjYtNy4xMDMtNS4xMzUtMTAuOTI4LTIuOTI4bC0yMC43ODUsMTJjLTMuODI2LDIuMjA5LTUuMTM3LDcuMTAyLTIuOTI4LDEwLjkyOA0KCQlDOTEuMjA1LDM1NC41NjYsOTMuODk0LDM1Ni4wMDEsOTYuNjU5LDM1Ni4wMDF6Ii8+DQoJPHBhdGggZD0iTTM5NC41NzEsMTg0LjAwMWMxLjM1NywwLDIuNzMzLTAuMzQ2LDMuOTkzLTEuMDczbDIwLjc4NS0xMmMzLjgyNi0yLjIwOSw1LjEzNy03LjEwMiwyLjkyOC0xMC45MjgNCgkJcy03LjEwMi01LjEzNS0xMC45MjgtMi45MjhsLTIwLjc4NSwxMmMtMy44MjYsMi4yMDktNS4xMzcsNy4xMDItMi45MjgsMTAuOTI4QzM4OS4xMTgsMTgyLjU2NiwzOTEuODA3LDE4NC4wMDEsMzk0LjU3MSwxODQuMDAxeiINCgkJLz4NCgk8cGF0aCBkPSJNMzUyLDg5LjcyM2MtMy44MjYtMi4yMS04LjcxOS0wLjg5OS0xMC45MjgsMi45MjhsLTEyLDIwLjc4NWMtMi4yMDksMy44MjYtMC44OTgsOC43MTksMi45MjgsMTAuOTI4DQoJCWMxLjI2LDAuNzI4LDIuNjM1LDEuMDczLDMuOTkzLDEuMDczYzIuNzY1LDAsNS40NTQtMS40MzUsNi45MzYtNC4wMDFsMTItMjAuNzg1QzM1Ny4xMzcsOTYuODI1LDM1NS44MjYsOTEuOTMyLDM1Miw4OS43MjN6Ii8+DQoJPHBhdGggZD0iTTE4MCwzODcuNjM2Yy0zLjgyNi0yLjIwOS04LjcxOS0wLjg5OC0xMC45MjgsMi45MjhsLTEyLDIwLjc4NWMtMi4yMDksMy44MjYtMC44OTgsOC43MTksMi45MjgsMTAuOTI4DQoJCWMxLjI2LDAuNzI4LDIuNjM1LDEuMDczLDMuOTkzLDEuMDczYzIuNzY1LDAsNS40NTQtMS40MzUsNi45MzYtNC4wMDFsMTItMjAuNzg1QzE4NS4xMzcsMzk0LjczOCwxODMuODI2LDM4OS44NDUsMTgwLDM4Ny42MzZ6Ii8+DQoJPHBhdGggZD0iTTM5MC41NjQsMzQyLjkyOGwyMC43ODUsMTJjMS4yNiwwLjcyOCwyLjYzNSwxLjA3MywzLjk5MywxLjA3M2MyLjc2NSwwLDUuNDU0LTEuNDM1LDYuOTM2LTQuMDAxDQoJCWMyLjIwOS0zLjgyNiwwLjg5OC04LjcxOS0yLjkyOC0xMC45MjhsLTIwLjc4NS0xMmMtMy44MjYtMi4yMS04LjcxOS0wLjg5OC0xMC45MjgsMi45MjgNCgkJQzM4NS40MjcsMzM1LjgyNiwzODYuNzM4LDM0MC43MTksMzkwLjU2NCwzNDIuOTI4eiIvPg0KCTxwYXRoIGQ9Ik0xMjEuNDM2LDE2OS4wNzJsLTIwLjc4NS0xMmMtMy44MjYtMi4yMS04LjcxOS0wLjg5OC0xMC45MjgsMi45MjhjLTIuMjA5LDMuODI2LTAuODk4LDguNzE5LDIuOTI4LDEwLjkyOGwyMC43ODUsMTINCgkJYzEuMjYsMC43MjgsMi42MzUsMS4wNzMsMy45OTMsMS4wNzNjMi43NjUsMCw1LjQ1NC0xLjQzNSw2LjkzNi00LjAwMUMxMjYuNTczLDE3Ni4xNzQsMTI1LjI2MiwxNzEuMjgxLDEyMS40MzYsMTY5LjA3MnoiLz4NCgk8cGF0aCBkPSJNMzExLjY5MiwzNjAuNDUxYzEuMzU3LDAsMi43MzMtMC4zNDYsMy45OTMtMS4wNzNjMy44MjYtMi4yMDksNS4xMzctNy4xMDIsMi45MjgtMTAuOTI4bC00NC4zOC03Ni44NjkNCgkJQzI3Ny44MjQsMjY3LjM4NCwyODAsMjYxLjk0MywyODAsMjU2YzAtMTAuNDI5LTYuNjg5LTE5LjMyMi0xNi0yMi42MjRWMTI4YzAtNC40MTgtMy41ODItOC04LThzLTgsMy41ODItOCw4djEwNS4zNzYNCgkJYy05LjMxMSwzLjMwMi0xNiwxMi4xOTUtMTYsMjIuNjI0YzAsMTMuMjM0LDEwLjc2NiwyNCwyNCwyNGMxLjQ5NywwLDIuOTYxLTAuMTQ1LDQuMzgzLTAuNDA4bDQ0LjM3NCw3Ni44NTgNCgkJQzMwNi4yMzksMzU5LjAxNiwzMDguOTI4LDM2MC40NTEsMzExLjY5MiwzNjAuNDUxeiBNMjQ4LDI1NmMwLTQuNDExLDMuNTg5LTgsOC04czgsMy41ODksOCw4cy0zLjU4OSw4LTgsOFMyNDgsMjYwLjQxMSwyNDgsMjU2eiINCgkJLz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjwvc3ZnPg0K" />',
       input: "text",
-      text: "Enter your name",
-      confirmButtonText: "Next",
+      inputPlaceholder: "Enter your name...",
+      confirmButtonText: "Enter",
       allowOutsideClick: false,
       showCancelButton: false,
       inputValidator: (value) => {
         if (!value) {
-          return "You need to enter a name";
+          return "You must enter a name to proceed";
         }
       },
     }).then((name) => {
@@ -881,7 +877,7 @@ $(function () {
               getRooms[room].open +
               '" id="' +
               room +
-              '">join</button</td>';
+              '">Join</button</td>';
             table_body += "</tr>";
           }
         } else {
@@ -891,8 +887,7 @@ $(function () {
         table_body += "</tbody></table></div>";
 
         Swal.fire({
-          title: "Join Game",
-          html: table_body,
+          html: '<span class="cd-letter">J</span><span class="post-cd-letter">OIN GAME</span><br>' + table_body,
           width: 800,
           confirmButtonText: "Create a room",
           allowOutsideClick: false,
@@ -943,21 +938,21 @@ $(function () {
           //creating new room
           if (newRoom.isConfirmed) {
             Swal.fire({
-              title: "Room Details",
               html:
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Room name</div>' +
-                '<input id="swal-roomname" maxlength="20" class="swal2-input">' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game type</div>' +
-                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"><span class="swal2-label">Classic</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"><span class="swal2-label">Knockout</span></label></div>' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Game availability</div>' +
-                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" value="Private"><span class="swal2-label">Private</span></label></div>' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Rounds</div>' +
-                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="5" checked="checked"><span class="swal2-label">5</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="10"><span class="swal2-label">10</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="15"><span class="swal2-label">15</span></label></div>' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Countdown timer</div>' +
-                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="30" checked="checked"><span class="swal2-label">30</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="60"><span class="swal2-label">60</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="90"><span class="swal2-label">90</span></label></div>' +
-                '<div id="swal2-content" class="swal2-html-container" style="display: block;">Password</div>' +
-                '<input id="swal-password" placeholder="Only needed for private games..." class="swal2-input">',
+                '<span class="cd-letter">C</span><span class="post-cd-letter">REATE A GAME</span> <br>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;"></div>' +
+                '<input style="width: 80%;" id="swal-roomname" maxlength="20" class="swal2-input" placeholder="Room name">' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;"></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><label style="margin:0.6em;font-size:1.125em;"><span class="swal2-label" style="margin-left: 10px">Classic</span><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Classic" checked="checked"></label><label style="margin:0.6em;font-size:1.125em;"><span class="swal2-label" style="margin-left: 10px">Knockout</span><input style="margin:0.4em" type="radio" name="swal2-radio-type" value="Knockout"></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;"></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><span style="width: 100px;">Availability</span><label style="margin:0.3em;font-size:1.125em"><input style="margin:0.4em" id="publicButton" type="radio" name="swal2-radio-open" value="Public" checked="checked"><span class="swal2-label">Public</span></label><label style="margin:0.3em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-open" id="privateButton" value="Private"><span class="swal2-label">Private</span></label></div>' +
+                '<input type="hidden" style="width: 80%;" id="swal-password" placeholder="Password..." class="swal2-input">' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;"></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><span style="width: 100px;">Rounds</span><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="5" checked="checked"><span class="swal2-label">5</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="10"><span class="swal2-label">10</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-rounds" value="15"><span class="swal2-label">15</span></label></div>' +
+                '<div id="swal2-content" class="swal2-html-container" style="display: block;"></div>' +
+                '<div style="display:flex; align-items:center;justify-content:center;background:#fff;color:inherit"><span style="width: 100px;">Timer</span><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="30" checked="checked"><span class="swal2-label">30</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="60"><span class="swal2-label">60</span></label><label style="margin:0.6em;font-size:1.125em"><input style="margin:0.4em" type="radio" name="swal2-radio-time" value="90"><span class="swal2-label">90</span></label></div>',
               focusConfirm: false,
+              confirmButtonText: "LET'S PLAY",
               allowOutsideClick: false,
               onBeforeOpen: () => {
                 $("#swal-roomname").keyup(function (e) {
@@ -965,6 +960,15 @@ $(function () {
                     $('input[name="swal2-radio-type"]')[0].focus();
                   }
                 });
+
+                $("#publicButton").on("click", function () {
+                  $("#swal-password").attr('type', 'hidden')
+                });
+
+                $("#privateButton").on("click", function () {
+                  $("#swal-password").attr('type', 'text')
+                });
+
               },
               preConfirm: () => {
                 return [
